@@ -16,7 +16,7 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 | Giai đoạn | Nội dung | Trạng thái |
 |---|---|---|
 | 1 | Khung chung: trang chính, cài đặt, lưu trữ, tuyết, nhạc, phím tắt, thư viện hình SVG | ✅ Xong |
-| 2 | Game 1 – Photobooth "Con của tương lai" (bản Đơn giản) + Album | ⏳ |
+| 2 | Game 1 – Photobooth "Con của tương lai" (bản Đơn giản) + Album | ✅ Xong |
 | 3 | Game 2 – Cùng trang trí cây thông | ⏳ |
 | 4 | Game 3 – Lò nướng bánh gừng may mắn | ⏳ |
 | 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ⏳ |
@@ -35,3 +35,17 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 - Font Be Vietnam Pro + Dancing Script (có dấu tiếng Việt) tải về `assets/fonts`.
 
 **Đã kiểm tra**: cú pháp toàn bộ JS (`node --check`), chụp màn hình trang chính + cài đặt bằng Edge headless.
+
+### 19/11/2026 — Giai đoạn 2: Game 1 Photobooth ✅
+**Đã làm**
+- Lưới 8 thẻ nghề, mỗi thẻ là một bé đội mũ + cầm đạo cụ của nghề đó.
+- Chọn nghề → hộp nhập tên (gõ tên, chọn nhanh từ danh sách các bé, hoặc Bỏ qua) → hình webcam lật như soi gương.
+- Khung ảnh 1600×1200: hình webcam, ô tròn nét đứt "Đưa mặt vào khung nhé!" (chỉ hiện lúc ngắm, không có trong ảnh), mũ + đạo cụ, viền Noel (dây thông, quả châu, nơ đỏ, lá nhựa ruồi, bông tuyết), dòng chữ "Mai này Na là Bác sĩ 🩺" + "Thôi nôi bé … · Giáng sinh 2026".
+- Bấm Chụp (hoặc Space): đếm 3-2-1 kèm tiếng chuông → tiếng chụp + ánh vàng dịu (không chớp trắng) → Xem lại: Giữ ảnh / Chụp lại.
+- Album: lưới ảnh, tải từng ảnh, xoá ảnh, **tải cả bộ .zip** (tự viết bộ tạo zip, không cần thư viện).
+- Trình chiếu: toàn màn hình, mỗi ảnh 4,5 giây, chuyển mờ dần; thanh điều khiển (trước / dừng / sau / đóng) chỉ hiện khi di chuột; Esc để đóng.
+- Báo lỗi webcam dễ hiểu (chưa cho phép, không có webcam, webcam đang bị app khác dùng, mở file trực tiếp không qua Live Server).
+- Thay hình riêng: đặt `assets/props/<nghề>-hat.png`, `<nghề>-prop.png`, `frame.png` là web tự dùng.
+
+**Đã kiểm tra** (Edge headless + webcam giả lập): chọn nghề, nhập/bỏ qua tên, chụp bằng Space, giữ ảnh, album 2 ảnh, trình chiếu, Esc đóng trình chiếu.
+**Sửa trong lúc test**: phím Space không ăn ngay sau khi đóng hộp nhập tên; bấm Space liên tiếp có thể kích hoạt chụp hai lần; thanh trình chiếu che chữ trên ảnh.
