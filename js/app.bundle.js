@@ -19,6 +19,9 @@ const SAMPLE_GUESTS = [
 
 const SAMPLE = {
   babyName: 'Na',
+  babyGender: 'girl',          // bé thôi nôi là bé gái / bé trai (hình trên thẻ ước mơ của bé)
+  voteUrl: '',                 // link ứng dụng web Google Apps Script (bình chọn QR, Game 1)
+  ownerPin: '',                // mã PIN chủ tiệc (tự tạo lần đầu)
   careers: [
     'Bác sĩ | 🩺', 'Phi hành gia | 🚀', 'Đầu bếp | 🍳', 'Lính cứu hỏa | 🚒',
     'Họa sĩ | 🎨', 'Ca sĩ | 🎤', 'Cảnh sát | 👮', 'Giáo viên | 📚',
@@ -42,8 +45,10 @@ function freshState() {
     musicOn: false,
     tree: { items: [], lit: false },
     oven: { winners: [], absent: [] },
+    pick: { career: '', at: 0 },          // nghề bé thôi nôi bốc được (Game 1 · Đoán bé bốc gì)
   };
 }
+const newPin = () => String(1000 + Math.floor(Math.random() * 9000));
 
 function load() {
   try {
@@ -57,6 +62,7 @@ function load() {
       settings: { ...base.settings, ...(data.settings || {}) },
       tree: { ...base.tree, ...(data.tree || {}) },
       oven: { ...base.oven, ...(data.oven || {}) },
+      pick: { ...base.pick, ...(data.pick || {}) },
     };
   } catch (e) {
     console.warn('Không đọc được dữ liệu, dùng mặc định', e);
@@ -66,6 +72,11 @@ function load() {
 
 let state = load();
 const listeners = new Set();
+// Mã PIN chủ tiệc tạo một lần rồi giữ nguyên (phải khớp với mã đã dán vào Google)
+if (!state.settings.ownerPin) {
+  state.settings.ownerPin = newPin();
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* bỏ qua */ }
+}
 
 const getState = () => state;
 const settings = () => state.settings;
@@ -80,7 +91,11 @@ function onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 
 function resetTree() { update((s) => { s.tree = { items: [], lit: false }; }); }
 function resetOven() { update((s) => { s.oven = { winners: [], absent: [] }; }); }
-function resetSettingsToSample() { update((s) => { s.settings = { ...SAMPLE }; }); }
+// Khôi phục danh sách mẫu nhưng giữ nguyên phần kết nối Google (link + PIN)
+function resetSettingsToSample() {
+  update((s) => { s.settings = { ...SAMPLE, voteUrl: s.settings.voteUrl, ownerPin: s.settings.ownerPin }; });
+}
+function resetPick() { update((s) => { s.pick = { career: '', at: 0 }; }); }
 
 function exportJSON() {
   return JSON.stringify({ app: 'thoinoi-xmas', version: 1, exportedAt: new Date().toISOString(), ...state }, null, 2);
@@ -94,7 +109,9 @@ function importJSON(text) {
     musicOn: !!data.musicOn,
     tree: { ...base.tree, ...(data.tree || {}) },
     oven: { ...base.oven, ...(data.oven || {}) },
+    pick: { ...base.pick, ...(data.pick || {}) },
   };
+  if (!state.settings.ownerPin) state.settings.ownerPin = newPin();
   save();
 }
 
@@ -189,7 +206,7 @@ function prizeSlots() {
   });
   return slots;
 }
-return { save, update, onChange, resetTree, resetOven, resetSettingsToSample, exportJSON, importJSON, normalize, slug, careerKey, babyName, babyPhrase, careers, kidInfo, guests, prizeSlots, SAMPLE, getState, settings, lines, kids };
+return { save, update, onChange, resetTree, resetOven, resetSettingsToSample, resetPick, exportJSON, importJSON, normalize, slug, careerKey, babyName, babyPhrase, careers, kidInfo, guests, prizeSlots, SAMPLE, getState, settings, lines, kids };
 })();
 
 // ===== js/audio.js =====
@@ -571,6 +588,59 @@ function trail(e) {
 return { init, enter, leave, refresh };
 })();
 
+// ===== js/vote.js =====
+__m['vote'] = (() => {
+// Kết nối Google Apps Script (bình chọn bằng mã QR · Game 1).
+// Gọi bằng JSONP (thẻ <script>) nên chạy được cả khi mở web bằng file://.
+const store = __m['storage'];
+
+let seq = 0;
+
+const url = () => (store.settings().voteUrl || '').trim();
+const configured = () => /^https?:\/\/\S+$/.test(url());
+
+// Gọi API: state | setup | lock | result | reset. Trả về trạng thái mới nhất từ Google Sheet.
+function call(api, params = {}, timeout = 12000) {
+  if (!configured()) return Promise.reject(new Error('Chưa dán link Google Apps Script trong Cài đặt'));
+  return new Promise((resolve, reject) => {
+    const cb = `__gsCb${Date.now().toString(36)}${seq++}`;
+    const s = document.createElement('script');
+    const q = new URLSearchParams({ api, pin: store.settings().ownerPin || '', ...params, callback: cb, _: String(Date.now()) });
+    let finished = false;
+    const finish = (err, data) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      s.remove();
+      window[cb] = () => {};                          // phản hồi đến muộn: bỏ qua
+      setTimeout(() => { delete window[cb]; }, 60000);
+      if (err) reject(err); else resolve(data);
+    };
+    const timer = setTimeout(() => finish(new Error('Google phản hồi chậm quá, đang thử lại…')), timeout);
+    window[cb] = (data) => (data && data.ok ? finish(null, data) : finish(new Error((data && data.error) || 'Google báo lỗi')));
+    s.onerror = () => finish(new Error('Không kết nối được Google. Kiểm tra mạng và link trong Cài đặt.'));
+    s.src = `${url()}${url().includes('?') ? '&' : '?'}${q}`;
+    document.head.appendChild(s);
+  });
+}
+
+// Gửi danh sách nghề + tên bé để trang bình chọn của khách hiện đúng
+function setup() {
+  const careers = store.careers().map((c) => ({ name: c.name, emoji: c.emoji }));
+  return call('setup', { careers: JSON.stringify(careers), baby: store.babyPhrase() });
+}
+
+// Mã QR dạng SVG (thư viện qrcode-generator, MIT — assets/vendor/qrcode.js)
+function qrSVG(text) {
+  if (typeof window.qrcode !== 'function' || !text) return '';
+  const q = window.qrcode(0, 'M');
+  q.addData(text);
+  q.make();
+  return q.createSvgTag({ cellSize: 8, margin: 2, scalable: true }).replace('fill="black"', 'fill="#1f2a22"');
+}
+return { call, setup, qrSVG, url, configured };
+})();
+
 // ===== js/db.js =====
 __m['db'] = (() => {
 // Lưu ảnh Photobooth trong IndexedDB (không giới hạn 5MB như localStorage).
@@ -611,12 +681,21 @@ const countPhotos = () => tx('readonly', (s) => s.count());
 return { addPhoto, allPhotos, deletePhoto, clearPhotos, countPhotos };
 })();
 
+// ===== js/gas-code.js =====
+__m['gas-code'] = (() => {
+// TỰ ĐỘNG TẠO từ tools/google-apps-script/Code.gs bởi tools/build.mjs — đừng sửa trực tiếp.
+const GAS_CODE = "/**\n * =====================================================================\n *  Mini game Thôi nôi · Giáng sinh — \"Đoán xem bé bốc gì?\"\n *  Mã chạy trên Google Apps Script, gắn với Google Sheet của bạn.\n * =====================================================================\n *  - Khách quét mã QR → mở trang bình chọn (chính trang này) → nhập tên, chọn nghề.\n *    Mỗi điện thoại 1 phiếu (đổi ý được tới khi khoá), lưu ở trang tính \"Phiếu\".\n *    Trang tính \"Thống kê\" tự cập nhật sau mỗi phiếu.\n *  - Web trên laptop (màn hình lớn) đọc số liệu, khoá bình chọn, công bố nghề bé bốc\n *    qua địa chỉ  .../exec?api=...  (phải đúng mã PIN chủ tiệc bên dưới).\n *\n *  Cách cài: xem README của web, mục \"Bình chọn bằng mã QR\".\n *  Sửa mã xong phải triển khai lại: Triển khai → Quản lý các lần triển khai → ✎ → Phiên bản: Phiên bản mới.\n */\nconst OWNER_PIN = '__OWNER_PIN__';   // web tự điền khi bạn bấm \"Chép mã cho Google\" trong Cài đặt\n\nconst VOTES = 'Phiếu';\nconst STATS = 'Thống kê';\nconst props = () => PropertiesService.getScriptProperties();\n\n// ---------------------------------------------------------------------\n// Cổng vào: không có ?api → trang bình chọn cho khách; có ?api → API cho màn hình lớn\n// ---------------------------------------------------------------------\nfunction doGet(e) {\n  const p = (e && e.parameter) || {};\n  if (p.api) return api_(p);\n  return HtmlService.createHtmlOutput(VOTE_PAGE)\n    .setTitle('Đoán xem bé bốc gì?')\n    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1');\n}\n\n// API trả về JSONP (callback) để web chạy được cả khi mở bằng file://\nfunction api_(p) {\n  let out;\n  try {\n    if (String(p.pin || '') !== String(OWNER_PIN)) throw new Error('Sai mã PIN chủ tiệc');\n    const a = String(p.api);\n    if (a === 'setup') setup_(p);\n    else if (a === 'lock') setLocked_(p.value !== '0');\n    else if (a === 'result') setResult_(String(p.career || ''));\n    else if (a === 'reset') resetVotes_();\n    else if (a !== 'state') throw new Error('Lệnh không hợp lệ: ' + a);\n    out = state_(true);\n    out.ok = true;\n  } catch (err) {\n    out = { ok: false, error: String((err && err.message) || err) };\n  }\n  const json = JSON.stringify(out);\n  const cb = String(p.callback || '').replace(/[^\\w$.]/g, '');\n  if (cb) {\n    return ContentService.createTextOutput(cb + '(' + json + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);\n  }\n  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);\n}\n\n// ---------------------------------------------------------------------\n// Cấu hình (danh sách nghề, tên bé, khoá, kết quả) lưu trong Thuộc tính tập lệnh\n// ---------------------------------------------------------------------\nfunction getCareers_() {\n  try { return JSON.parse(props().getProperty('careers') || '[]'); } catch (e) { return []; }\n}\n\nfunction setup_(p) {\n  let list;\n  try { list = JSON.parse(p.careers || '[]'); } catch (e) { throw new Error('Danh sách nghề không hợp lệ'); }\n  list = list.filter(function (c) { return c && c.name; }).slice(0, 40).map(function (c) {\n    return { name: String(c.name).trim().slice(0, 40), emoji: String(c.emoji || '').slice(0, 8) };\n  });\n  const pr = props();\n  if (list.length) pr.setProperty('careers', JSON.stringify(list));\n  if (p.baby) pr.setProperty('baby', String(p.baby).slice(0, 60));\n  sheets_();\n  writeStats_();\n}\n\nfunction setLocked_(on) {\n  props().setProperty('locked', on ? '1' : '0');\n  writeStats_();\n}\n\nfunction setResult_(career) {\n  const pr = props();\n  if (career) {\n    if (!getCareers_().some(function (c) { return c.name === career; })) throw new Error('Nghề không có trong danh sách: ' + career);\n    pr.setProperty('result', career);\n    pr.setProperty('locked', '1');\n  } else {\n    pr.deleteProperty('result');\n  }\n  writeStats_();\n}\n\nfunction resetVotes_() {\n  const lock = LockService.getScriptLock();\n  lock.waitLock(15000);\n  try {\n    const sh = sheets_().votes;\n    const n = sh.getLastRow();\n    if (n > 1) sh.getRange(2, 1, n - 1, 4).clearContent();\n    const pr = props();\n    pr.setProperty('locked', '0');\n    pr.deleteProperty('result');\n    writeStats_();\n  } finally {\n    lock.releaseLock();\n  }\n}\n\n// ---------------------------------------------------------------------\n// Trang tính\n// ---------------------------------------------------------------------\nfunction sheets_() {\n  const ss = SpreadsheetApp.getActiveSpreadsheet();\n  let votes = ss.getSheetByName(VOTES);\n  if (!votes) {\n    votes = ss.insertSheet(VOTES);\n    votes.getRange(1, 1, 1, 4).setValues([['Thời gian', 'Tên khách', 'Đoán bé bốc', 'Mã điện thoại']]);\n    votes.setFrozenRows(1);\n  }\n  let stats = ss.getSheetByName(STATS);\n  if (!stats) stats = ss.insertSheet(STATS);\n  return { votes: votes, stats: stats };\n}\n\nfunction readVotes_() {\n  const sh = sheets_().votes;\n  const n = sh.getLastRow();\n  if (n < 2) return [];\n  return sh.getRange(2, 1, n - 1, 4).getValues()\n    .filter(function (r) { return r[1] !== '' && r[2] !== ''; })\n    .map(function (r) {\n      const at = r[0] instanceof Date ? r[0].getTime() : (new Date(r[0]).getTime() || 0);\n      return { at: at, name: String(r[1]).replace(/^'/, ''), career: String(r[2]), device: String(r[3]) };\n    });\n}\n\nfunction state_(full) {\n  const pr = props();\n  const careers = getCareers_();\n  const votes = readVotes_();\n  const result = pr.getProperty('result') || '';\n  const counts = {};\n  careers.forEach(function (c) { counts[c.name] = 0; });\n  votes.forEach(function (v) { counts[v.career] = (counts[v.career] || 0) + 1; });\n  const s = {\n    baby: pr.getProperty('baby') || '',\n    careers: careers,\n    locked: pr.getProperty('locked') === '1',\n    result: result,\n    total: votes.length,\n    counts: counts,\n  };\n  if (full) {\n    s.recent = votes.slice().sort(function (a, b) { return b.at - a.at; }).slice(0, 8)\n      .map(function (v) { return { name: v.name, career: v.career, at: v.at }; });\n    s.correct = result\n      ? votes.filter(function (v) { return v.career === result; }).sort(function (a, b) { return a.at - b.at; })\n        .map(function (v) { return v.name; })\n      : [];\n  }\n  return s;\n}\n\n// Trang tính \"Thống kê\": số người đoán từng nghề, kết quả, người đoán đúng\nfunction writeStats_() {\n  const st = sheets_().stats;\n  const s = state_(true);\n  const rows = [['Nghề', 'Số người đoán', 'Tỉ lệ']];\n  s.careers.map(function (c) {\n    const n = s.counts[c.name] || 0;\n    return [c.name + (c.emoji ? ' ' + c.emoji : ''), n, s.total ? Math.round((n / s.total) * 100) + '%' : '0%'];\n  }).sort(function (a, b) { return b[1] - a[1]; }).forEach(function (r) { rows.push(r); });\n  rows.push(['', '', '']);\n  rows.push(['Tổng số phiếu', s.total, '']);\n  rows.push(['Bình chọn', s.locked ? 'Đã khoá' : 'Đang mở', '']);\n  rows.push(['Bé đã bốc', s.result || '(chưa)', '']);\n  rows.push(['Người đoán đúng', s.result ? s.correct.length : '', s.correct.join(', ')]);\n  st.clearContents();\n  st.getRange(1, 1, rows.length, 3).setValues(rows);\n}\n\n// Chặn chữ bắt đầu bằng = + - @ bị Google Sheet hiểu thành công thức\nfunction safeText_(t) {\n  t = String(t || '').trim();\n  return /^[=+\\-@]/.test(t) ? \"'\" + t : t;\n}\n\n// ---------------------------------------------------------------------\n// Dành cho trang bình chọn của khách (gọi qua google.script.run)\n// ---------------------------------------------------------------------\nfunction getInfo(device) {\n  const s = state_(false);\n  return { baby: s.baby, careers: s.careers, locked: s.locked, result: s.result, mine: device ? findVote_(String(device)) : null };\n}\n\nfunction findVote_(device) {\n  const mine = readVotes_().filter(function (v) { return v.device === device; });\n  const v = mine[mine.length - 1];\n  return v ? { name: v.name, career: v.career } : null;\n}\n\nfunction submitVote(device, name, career) {\n  device = String(device || '').slice(0, 64);\n  name = String(name || '').trim().slice(0, 40);\n  career = String(career || '');\n  if (!device) throw new Error('Thiếu mã điện thoại, bạn tải lại trang giúp nhé');\n  if (!name) throw new Error('Bạn nhập tên giúp nhé');\n  const pr = props();\n  if (pr.getProperty('locked') === '1' || pr.getProperty('result')) throw new Error('Đã khoá bình chọn rồi, cùng chờ bé bốc nhé!');\n  if (!getCareers_().some(function (c) { return c.name === career; })) throw new Error('Bạn chọn một nghề giúp nhé');\n  const lock = LockService.getScriptLock();\n  lock.waitLock(15000);\n  try {\n    const sh = sheets_().votes;\n    const n = sh.getLastRow();\n    let row = 0;\n    if (n > 1) {\n      const ids = sh.getRange(2, 4, n - 1, 1).getValues();\n      for (let i = 0; i < ids.length; i++) {\n        if (String(ids[i][0]) === device) { row = i + 2; break; }\n      }\n    }\n    const values = [new Date(), safeText_(name), career, device];\n    if (row) sh.getRange(row, 1, 1, 4).setValues([values]);\n    else sh.appendRow(values);\n    writeStats_();\n  } finally {\n    lock.releaseLock();\n  }\n  return getInfo(device);\n}\n\n// ---------------------------------------------------------------------\n// Trang bình chọn trên điện thoại khách\n// ---------------------------------------------------------------------\nconst VOTE_PAGE = `<!doctype html>\n<html lang=\"vi\"><head><base target=\"_top\"><meta charset=\"utf-8\">\n<link href=\"https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Mali:wght@600;700&display=swap\" rel=\"stylesheet\">\n<style>\n  :root { --pine:#1a4230; --pine2:#10291d; --berry:#b8323a; --berry-d:#8c1f2a; --cream:#fdf3df; --gold:#f2c46d; --ink:#3b2414; }\n  * { box-sizing: border-box; }\n  body { margin:0; min-height:100vh; padding:20px 14px 36px; font-family: Mali, 'Segoe UI', system-ui, sans-serif; color:var(--ink);\n    background: radial-gradient(ellipse at 50% -10%, #2f6e50, var(--pine) 55%, var(--pine2)); }\n  .lights { height:26px; margin:-6px auto 10px; max-width:520px; background:\n    radial-gradient(circle at 50% 70%, #ffd36b 0 5px, transparent 6px) 0 0/44px 26px repeat-x,\n    radial-gradient(circle at 50% 70%, #ff6b6b 0 5px, transparent 6px) 22px 0/44px 26px repeat-x; opacity:.9; }\n  .card { position:relative; max-width:520px; margin:0 auto; padding:20px 16px 22px; border-radius:22px; background:var(--cream);\n    box-shadow:0 0 0 4px #fff, 0 16px 30px rgba(0,0,0,.35); outline:2px dashed rgba(184,50,58,.45); outline-offset:-10px; }\n  .tag { display:inline-block; padding:3px 12px; border-radius:999px; background:#fff; color:var(--berry-d);\n    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:.8rem; letter-spacing:.12em; text-transform:uppercase; }\n  h1 { margin:.35em 0 .15em; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.75rem; line-height:1.15; color:var(--berry-d); }\n  .sub { margin:0 0 12px; color:#6e5440; font-size:.98rem; }\n  .lb { display:block; margin:12px 0 6px; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.05rem; }\n  input { width:100%; padding:12px 14px; border:2px solid #e8d6b6; border-radius:14px; background:#fff; font:inherit; font-size:1.1rem; outline:none; }\n  input:focus { border-color:var(--berry); }\n  .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }\n  .opt { display:flex; flex-direction:column; align-items:center; gap:2px; padding:12px 6px; border:2px solid #e8d6b6; border-radius:16px;\n    background:#fff; color:var(--ink); font:inherit; font-weight:700; font-size:1rem; cursor:pointer; }\n  .opt .em { font-size:2rem; line-height:1.15; }\n  .opt.on { border-color:var(--berry); background:#fff1ee; box-shadow:0 0 0 3px rgba(184,50,58,.2); }\n  .btn { display:block; width:100%; margin-top:16px; padding:13px; border:0; border-radius:999px; cursor:pointer;\n    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.25rem; color:var(--cream);\n    background:linear-gradient(180deg,#d44a50,var(--berry) 55%,var(--berry-d)); box-shadow:0 5px 0 #6a1620, 0 10px 18px rgba(0,0,0,.22); }\n  .btn:disabled { opacity:.55; }\n  .btn.ghost { color:var(--berry-d); background:#fff; box-shadow:0 4px 0 #e8d6b6; font-size:1.05rem; }\n  .msg { margin-top:14px; padding:14px; border-radius:16px; background:#fff; text-align:center; font-weight:700; line-height:1.5; }\n  .msg.err { color:var(--berry); }\n  .big { font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.9rem; line-height:1.2; color:var(--berry-d); }\n  .hide { display:none !important; }\n  .foot { margin:14px 0 0; text-align:center; color:rgba(253,243,223,.85); font-size:.9rem; }\n</style></head>\n<body>\n<div class=\"lights\"></div>\n<div class=\"card\">\n  <span class=\"tag\">🎄 Mừng thôi nôi</span>\n  <h1 id=\"title\">Đoán xem bé sẽ bốc gì?</h1>\n  <p class=\"sub\">Chọn món bạn đoán bé sẽ bốc được trong lễ thôi nôi nhé!</p>\n  <div id=\"form\" class=\"hide\">\n    <label class=\"lb\" for=\"name\">Tên của bạn</label>\n    <input id=\"name\" maxlength=\"40\" placeholder=\"Ví dụ: Cô Lan\" autocomplete=\"name\">\n    <label class=\"lb\">Bạn đoán bé sẽ bốc:</label>\n    <div class=\"grid\" id=\"grid\"></div>\n    <button class=\"btn\" id=\"send\" type=\"button\">Gửi dự đoán 🎁</button>\n  </div>\n  <div class=\"msg\" id=\"msg\">Đang tải…</div>\n</div>\n<p class=\"foot\">Giáng sinh an lành! ✨</p>\n<script>\n  var KEY = 'thoinoi-vote-', info = null, chosen = '', editing = false, busy = false;\n  function $(id) { return document.getElementById(id); }\n  function mem(k, v) {\n    try { if (v === undefined) return localStorage.getItem(KEY + k); localStorage.setItem(KEY + k, v); } catch (e) { return null; }\n    return null;\n  }\n  var device = mem('id') || ('d' + Math.random().toString(36).slice(2) + Date.now().toString(36));\n  mem('id', device);\n  $('name').value = mem('name') || '';\n  function esc(s) { return String(s).replace(/[&<>\"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[c]; }); }\n  function emo(n) {\n    var c = ((info && info.careers) || []).filter(function (x) { return x.name === n; })[0];\n    return c && c.emoji ? ' ' + c.emoji : '';\n  }\n  function show(html, err) { var m = $('msg'); m.className = 'msg' + (err ? ' err' : ''); m.innerHTML = html; }\n  function render() {\n    if (!info) return;\n    var baby = info.baby || 'bé';\n    $('title').textContent = 'Đoán xem ' + baby + ' sẽ bốc gì?';\n    var grid = $('grid'), sig = JSON.stringify(info.careers);\n    if (grid.getAttribute('data-sig') !== sig) {\n      grid.setAttribute('data-sig', sig);\n      grid.innerHTML = info.careers.map(function (c) {\n        return '<button type=\"button\" class=\"opt\" data-n=\"' + esc(c.name) + '\"><span class=\"em\">' + esc(c.emoji || '🎁') + '</span>' + esc(c.name) + '</button>';\n      }).join('');\n    }\n    if (!chosen && info.mine) chosen = info.mine.career;\n    Array.prototype.forEach.call(grid.children, function (b) { b.classList.toggle('on', b.getAttribute('data-n') === chosen); });\n    var closed = info.locked || !!info.result;\n    $('form').classList.toggle('hide', !info.careers.length || closed || (!!info.mine && !editing));\n    if (!info.careers.length) return show('Chủ tiệc chưa mở bình chọn.<br>Bạn đợi chút rồi tải lại trang nhé!');\n    if (info.result) {\n      var right = info.mine && info.mine.career === info.result;\n      return show(esc(baby.charAt(0).toUpperCase() + baby.slice(1)) + ' đã bốc được<div class=\"big\">' + esc(info.result + emo(info.result)) + '</div>' +\n        (info.mine ? (right ? '🎉 Bạn đoán đúng rồi! Chúc mừng ' + esc(info.mine.name) + '!' : 'Bạn đoán ' + esc(info.mine.career) + '. Cảm ơn bạn đã tham gia nhé!') : ''));\n    }\n    if (info.locked) {\n      return show('Đã khoá bình chọn 🔒<br>' + (info.mine ? 'Bạn đoán: <b>' + esc(info.mine.career + emo(info.mine.career)) + '</b><br>' : '') + 'Cùng chờ bé bốc nhé! 🎁');\n    }\n    if (info.mine && !editing) {\n      return show('Cảm ơn ' + esc(info.mine.name) + '! 💌<br>Bạn đoán bé sẽ bốc: <b>' + esc(info.mine.career + emo(info.mine.career)) + '</b>' +\n        '<button class=\"btn ghost\" id=\"again\" type=\"button\">Đổi ý</button>');\n    }\n    $('msg').className = 'msg hide';\n  }\n  function load() {\n    if (busy) return;\n    google.script.run.withSuccessHandler(function (res) { info = res; render(); })\n      .withFailureHandler(function (e) { if (!info) show('Chưa tải được: ' + esc(e.message || e), true); })\n      .getInfo(device);\n  }\n  document.addEventListener('click', function (ev) {\n    var t = ev.target;\n    var o = t.closest ? t.closest('.opt') : null;\n    if (o) { chosen = o.getAttribute('data-n'); render(); return; }\n    if (t.id === 'again') { editing = true; render(); return; }\n    if (t.id === 'send') {\n      var name = $('name').value.trim();\n      if (!name) { $('name').focus(); return show('Bạn nhập tên giúp nhé', true); }\n      if (!chosen) return show('Bạn chọn một món giúp nhé', true);\n      busy = true; t.disabled = true; t.textContent = 'Đang gửi…';\n      google.script.run.withSuccessHandler(function (res) {\n        busy = false; t.disabled = false; t.textContent = 'Gửi dự đoán 🎁';\n        mem('name', name); editing = false; info = res; render();\n      }).withFailureHandler(function (e) {\n        busy = false; t.disabled = false; t.textContent = 'Gửi dự đoán 🎁';\n        show(esc(e.message || e), true); load();\n      }).submitVote(device, name, chosen);\n    }\n  });\n  load();\n  setInterval(load, 6000);\n</script>\n</body></html>`;\n";
+return { GAS_CODE };
+})();
+
 // ===== js/settings.js =====
 __m['settings'] = (() => {
 // Màn hình Cài đặt
 const store = __m['storage'];
 const { clearPhotos } = __m['db'];
 const { el, esc, toast, download } = __m['ui'];
+const gs = __m['vote'];
+const { GAS_CODE } = __m['gas-code'];
 
 const FIELDS = [
   {
@@ -655,9 +734,10 @@ function flush() {
   const f = pendingField;
   pendingField = null;
   if (!f) return;
-  store.update((st) => { st.settings[f.dataset.key] = f.value; });
+  store.update((st) => { st.settings[f.dataset.key] = f.dataset.key === 'voteUrl' || f.dataset.key === 'ownerPin' ? f.value.trim() : f.value; });
   if (root) {
     refreshCounts();
+    refreshVoteState();
     const s = root.querySelector('#saveState');
     if (s) s.textContent = 'Đã lưu ✓';
   }
@@ -685,8 +765,34 @@ function render() {
       </div>
       <div class="settings-grid">
         <div class="field wide">
-          <div class="field-top"><label for="f-babyName">Tên em bé thôi nôi</label></div>
+          <div class="field-top">
+            <label for="f-babyName">Tên em bé thôi nôi</label>
+            <span class="seg" role="radiogroup" aria-label="Bé thôi nôi là">
+              <label><input type="radio" name="babyGender" value="girl" ${s.babyGender !== 'boy' ? 'checked' : ''}> 👧 Bé gái</label>
+              <label><input type="radio" name="babyGender" value="boy" ${s.babyGender === 'boy' ? 'checked' : ''}> 👦 Bé trai</label>
+            </span>
+          </div>
           <input type="text" id="f-babyName" class="name-input" data-key="babyName" value="${esc(s.babyName)}" maxlength="30" autocomplete="off">
+        </div>
+        <div class="field wide vote-field">
+          <div class="field-top"><label for="f-voteUrl">Bình chọn bằng mã QR · Game 1 "Đoán bé bốc gì"</label><span class="count" id="voteState"></span></div>
+          <p class="hint">Khách quét mã QR để đoán bé sẽ bốc nghề gì, kết quả lưu vào Google Sheet của bạn. Làm một lần, khoảng 5–10 phút, theo hướng dẫn trong README (mục 7). Cần Internet ở tiệc.</p>
+          <div class="vote-steps">
+            <div class="vote-step">
+              <b>1.</b> Mã PIN chủ tiệc
+              <input type="text" id="f-ownerPin" data-key="ownerPin" value="${esc(s.ownerPin)}" maxlength="12" autocomplete="off" inputmode="numeric">
+              <button class="btn btn-ghost btn-sm" id="btnCopyGas" type="button">Chép mã cho Google</button>
+            </div>
+            <div class="vote-step grow">
+              <b>2.</b> Link ứng dụng web (kết thúc bằng <code>/exec</code>)
+              <input type="text" id="f-voteUrl" data-key="voteUrl" value="${esc(s.voteUrl)}" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="vote-step">
+              <b>3.</b> <button class="btn btn-ghost btn-sm" id="btnTestGas" type="button">Kiểm tra kết nối</button>
+              <span class="vote-test" id="voteTest"></span>
+            </div>
+          </div>
+          <textarea id="gasCode" class="gas-code" readonly hidden spellcheck="false"></textarea>
         </div>
         ${FIELDS.map((f) => `
           <div class="field">
@@ -710,6 +816,7 @@ function render() {
           <button class="btn btn-danger btn-sm" data-reset="photos">Xoá toàn bộ thẻ ước mơ</button>
           <button class="btn btn-danger btn-sm" data-reset="tree">Làm lại cây thông</button>
           <button class="btn btn-danger btn-sm" data-reset="oven">Làm lại bốc thăm</button>
+          <button class="btn btn-danger btn-sm" data-reset="guess">Xoá phiếu đoán bé bốc gì</button>
           <button class="btn btn-danger btn-sm" data-reset="sample">Khôi phục dữ liệu mẫu</button>
         </div>
       </div>
@@ -754,16 +861,70 @@ function render() {
       photos: 'Xoá toàn bộ thẻ ước mơ trong album? Không thể hoàn tác.',
       tree: 'Gỡ hết đồ trang trí và quà ở cây thông, làm lại từ đầu?',
       oven: 'Xoá kết quả bốc thăm (bảng "Đã trúng") để bốc lại từ đầu?',
-      sample: 'Thay toàn bộ danh sách hiện tại bằng dữ liệu mẫu?',
+      guess: 'Xoá hết phiếu đoán "bé bốc gì" (cả trên Google Sheet) và kết quả bé bốc, để chạy lại từ đầu?',
+      sample: 'Thay toàn bộ danh sách hiện tại bằng dữ liệu mẫu? (Giữ nguyên link Google và mã PIN)',
     }[kind];
     flush();
     if (!confirm(msg)) return;
     if (kind === 'photos') await clearPhotos();
     if (kind === 'tree') store.resetTree();
     if (kind === 'oven') store.resetOven();
+    if (kind === 'guess') {
+      store.resetPick();
+      if (gs.configured()) {
+        try { await gs.call('reset'); } catch (err) { toast(`Đã xoá trên máy, nhưng chưa xoá được trên Google: ${err.message}`, 4500); return; }
+      }
+    }
     if (kind === 'sample') { store.resetSettingsToSample(); render(); }
     toast('Đã làm lại ✓');
   }));
+
+  // ----- Bé gái / bé trai -----
+  wrap.querySelectorAll('input[name="babyGender"]').forEach((r) => r.addEventListener('change', () => {
+    store.update((st) => { st.settings.babyGender = r.value; });
+    state.textContent = 'Đã lưu ✓';
+  }));
+
+  // ----- Bình chọn bằng mã QR (Google Apps Script) -----
+  const voteTest = wrap.querySelector('#voteTest');
+  wrap.querySelector('#btnCopyGas').addEventListener('click', async () => {
+    flush();
+    const pin = String(store.settings().ownerPin || '').replace(/[^0-9A-Za-z]/g, '');
+    if (!pin) { toast('Đặt mã PIN chủ tiệc trước nhé (chữ hoặc số)', 3000); return; }
+    const code = GAS_CODE.replace('__OWNER_PIN__', pin);
+    const box = wrap.querySelector('#gasCode');
+    box.value = code;
+    let ok = false;
+    try { await navigator.clipboard.writeText(code); ok = true; } catch { /* thử cách khác */ }
+    if (!ok) {
+      box.hidden = false;
+      box.select();
+      try { ok = document.execCommand('copy'); } catch { ok = false; }
+    }
+    if (ok) { box.hidden = true; toast('Đã chép mã ✓ — dán vào Apps Script (README mục 7)', 3500); }
+    else toast('Không tự chép được — bôi đen toàn bộ mã trong ô bên dưới rồi bấm Ctrl+C', 5000);
+  });
+  wrap.querySelector('#btnTestGas').addEventListener('click', async () => {
+    flush();
+    if (!gs.configured()) { voteTest.textContent = 'Dán link ứng dụng web vào ô số 2 trước nhé'; voteTest.className = 'vote-test bad'; return; }
+    voteTest.textContent = 'Đang kiểm tra…';
+    voteTest.className = 'vote-test';
+    try {
+      const s = await gs.setup();
+      voteTest.textContent = `Kết nối tốt ✓ · ${s.careers.length} nghề · ${s.total} phiếu${s.locked ? ' · đang khoá' : ''}`;
+      voteTest.className = 'vote-test good';
+    } catch (err) {
+      voteTest.textContent = err.message;
+      voteTest.className = 'vote-test bad';
+    }
+    refreshVoteState();
+  });
+  refreshVoteState();
+}
+
+function refreshVoteState() {
+  const v = root && root.querySelector('#voteState');
+  if (v) v.textContent = gs.configured() ? 'Đã dán link' : 'Chưa nối';
 }
 
 function refreshCounts() {
@@ -1710,6 +1871,316 @@ function loadImage(src) {
 return { svg, starPath, kidSVG, giftSVG, treeSVG, gingerSVG, cardArt, frameSVG, svgToImage, loadImage, hatSVG, propSVG, careerCardSVG, ORNAMENTS, ornamentSVG };
 })();
 
+// ===== js/guess.js =====
+__m['guess'] = (() => {
+// Game 1 — "Đoán xem bé bốc gì?"
+// Khách quét mã QR đoán nghề bé thôi nôi sẽ bốc (lưu vào Google Sheet), màn hình lớn hiện biểu đồ trực tiếp.
+// Chủ tiệc: Khoá bình chọn → "Bé bốc đồ!" → bấm nghề bé đã bốc → công bố + danh sách người đoán đúng.
+const store = __m['storage'];
+const { sfx } = __m['audio'];
+const { kidSVG } = __m['art'];
+const gs = __m['vote'];
+const { $, $$, el, esc, toast } = __m['ui'];
+
+const POLL_MS = 4000;
+const STEPS = ['guess', 'drum', 'reveal'];
+let root, hooks;
+let active = false;
+let step = '';
+let pollTimer = 0;
+let last = null;           // trạng thái mới nhất từ Google Sheet
+let online = false;
+let lastError = '';
+let setupDone = false;
+let seen = new Set();      // phiếu đã hiện ở dòng "vừa đoán"
+let firstLoad = true;
+
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+function mount(container, h) {
+  root = container;
+  hooks = h;      // { showStep, sparkles, makeBabyCard }
+  root.appendChild(el(`
+    <div class="g1-step gs-guess" data-step="guess" hidden>
+      <div class="g1-head">
+        <div>
+          <h2 class="screen-title">Đoán xem bé bốc gì?</h2>
+          <p class="screen-sub gs-status">Đang kết nối…</p>
+        </div>
+        <div class="g1-actions">
+          <button class="btn btn-ghost" data-gact="back">← Thẻ ước mơ</button>
+          <button class="btn btn-ghost" data-gact="lock">🔒 Khoá bình chọn</button>
+          <button class="btn btn-primary" data-gact="drum">🎁 Bé bốc đồ!</button>
+        </div>
+      </div>
+      <div class="gs-body">
+        <div class="gs-qr-card">
+          <p class="gs-qr-title">Quét mã để đoán xem<br><b class="gs-baby"></b> sẽ bốc gì!</p>
+          <div class="gs-qr"></div>
+          <p class="gs-qr-note">Mở camera điện thoại để quét · cần 4G hoặc Wi-Fi</p>
+        </div>
+        <div class="gs-board">
+          <div class="gs-total"><b>0</b> người đã đoán</div>
+          <div class="gs-chart"></div>
+          <div class="gs-ticker" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>`));
+  root.appendChild(el(`
+    <div class="g1-step gs-drum" data-step="drum" hidden>
+      <div class="drum-stage">
+        <div class="drum-ring" aria-hidden="true"></div>
+        <h2 class="drum-title"></h2>
+        <p class="drum-sub">Bé bốc xong, chủ tiệc bấm vào món bé đã chọn nhé:</p>
+        <div class="drum-grid"></div>
+      </div>
+      <div class="g1-bar">
+        <button class="btn btn-ghost" data-gact="undrum">← Quay lại bình chọn</button>
+        <span class="drum-note"></span>
+        <span></span>
+      </div>
+    </div>`));
+  root.appendChild(el(`
+    <div class="g1-step gs-reveal" data-step="reveal" hidden>
+      <div class="rv-wrap">
+        <div class="rv-kid"></div>
+        <div class="rv-info">
+          <p class="rv-kicker"></p>
+          <h2 class="rv-career"></h2>
+          <p class="rv-stat"></p>
+          <div class="rv-names"></div>
+          <div class="rv-actions">
+            <button class="btn btn-primary btn-lg" data-gact="card">✨ Tạo thẻ ước mơ cho bé</button>
+            <button class="btn btn-ghost" data-gact="repick">Chọn lại</button>
+            <button class="btn btn-ghost" data-gact="back">Xong</button>
+          </div>
+        </div>
+      </div>
+    </div>`));
+  root.addEventListener('click', onClick);
+}
+
+// Mở phần đoán (nút "Đoán bé bốc gì" ở Game 1)
+function open() {
+  active = true;
+  setupDone = false;
+  firstLoad = true;
+  seen = new Set();
+  const pick = store.getState().pick;
+  show(pick.career ? 'reveal' : 'guess');
+  render();
+  poll();
+}
+
+function leave() {
+  active = false;
+  clearTimeout(pollTimer);
+}
+
+function onEsc() {
+  if (!STEPS.includes(step) || !isVisible()) return false;
+  back();
+  return true;
+}
+
+const isVisible = () => !!root && STEPS.some((s) => !$(`[data-step="${s}"]`, root).hidden);
+
+function show(s) {
+  step = s;
+  hooks.showStep(s);
+  if (s === 'drum') renderDrum();
+  if (s === 'reveal') renderReveal();
+}
+
+function back() {
+  leave();
+  step = '';
+  hooks.showStep('pick');
+}
+
+function onClick(e) {
+  const opt = e.target.closest('.drum-opt');
+  if (opt) { choose(opt.dataset.career); return; }
+  const b = e.target.closest('[data-gact]');
+  if (!b || b.disabled) return;
+  ({
+    back,
+    lock: toggleLock,
+    drum: startDrum,
+    undrum: () => show('guess'),
+    repick: () => show('drum'),
+    card: () => { leave(); hooks.makeBabyCard(store.getState().pick.career); },
+    settings: () => { location.hash = '#settings'; },
+  })[b.dataset.gact]?.();
+}
+
+// ---------------- Đồng bộ với Google Sheet ----------------
+async function poll() {
+  clearTimeout(pollTimer);
+  if (!active) return;
+  if (gs.configured()) {
+    try {
+      if (!setupDone) { last = await gs.setup(); setupDone = true; }
+      else last = await gs.call('state');
+      // Đã công bố trên laptop nhưng lần gửi trước bị lỗi mạng → gửi lại
+      const pick = store.getState().pick.career;
+      if (pick && last.result !== pick && step === 'reveal') last = await gs.call('result', { career: pick });
+      online = true;
+      lastError = '';
+    } catch (err) {
+      online = false;
+      lastError = err.message;
+    }
+    if (!active) return;
+    render();
+  }
+  pollTimer = setTimeout(poll, POLL_MS);
+}
+
+async function toggleLock() {
+  if (!gs.configured()) return;
+  const btn = $('[data-gact="lock"]', root);
+  btn.disabled = true;
+  try {
+    last = await gs.call('lock', { value: last && last.locked ? '0' : '1' });
+    online = true;
+    render();
+  } catch (err) {
+    toast(`Chưa đổi được: ${err.message}`, 3500);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function startDrum() {
+  show('drum');
+  sfx.jingle();
+  if (gs.configured() && !(last && last.locked)) {
+    try { last = await gs.call('lock', { value: '1' }); render(); } catch (err) { toast(`Chưa khoá được bình chọn: ${err.message}`, 3500); }
+  }
+}
+
+async function choose(name) {
+  store.update((s) => { s.pick = { career: name, at: Date.now() }; });
+  show('reveal');
+  sfx.bloom();
+  setTimeout(() => { sfx.sparkle(); hooks.sparkles($('.rv-kid', root)); }, 650);
+  if (!gs.configured()) return;
+  try {
+    last = await gs.call('result', { career: name });
+    online = true;
+  } catch (err) {
+    toast(`Chưa gửi được kết quả lên Google, web sẽ tự thử lại: ${err.message}`, 4500);
+  }
+  render();
+}
+
+// ---------------- Hiển thị ----------------
+function render() {
+  if (!root) return;
+  renderGuess();
+  if (step === 'drum') renderDrumNote();
+  if (step === 'reveal') renderReveal();
+}
+
+function renderGuess() {
+  const ok = gs.configured();
+  $('.gs-baby', root).textContent = store.babyPhrase();
+  // Mã QR (vẽ lại khi đổi link)
+  const qr = $('.gs-qr', root);
+  const link = ok ? gs.url() : '';
+  if (qr.dataset.url !== link) {
+    qr.dataset.url = link;
+    qr.classList.toggle('empty', !ok);
+    qr.innerHTML = ok
+      ? (gs.qrSVG(link) || '<p>Không tạo được mã QR</p>')
+      : `<div class="gs-setup"><b>Chưa nối Google Sheet</b><span>Vào Cài đặt → "Bình chọn bằng mã QR" để bật (làm 1 lần, khoảng 5–10 phút).</span>
+         <button class="btn btn-primary btn-sm" data-gact="settings">Mở Cài đặt</button></div>`;
+  }
+  // Biểu đồ
+  const careers = store.careers();
+  const counts = (last && last.counts) || {};
+  const chart = $('.gs-chart', root);
+  const sig = careers.map((c) => c.name).join('|');
+  if (chart.dataset.sig !== sig) {
+    chart.dataset.sig = sig;
+    chart.innerHTML = careers.map((c) => `
+      <div class="gs-row" data-name="${esc(c.name)}">
+        <span class="gs-ico">${esc(c.emoji || '🎁')}</span>
+        <span class="gs-name">${esc(c.name)}</span>
+        <span class="gs-bar"><i></i></span>
+        <b class="gs-n">0</b>
+      </div>`).join('');
+  }
+  const top = Math.max(0, ...careers.map((c) => counts[c.name] || 0));
+  $$('.gs-row', chart).forEach((row) => {
+    const n = counts[row.dataset.name] || 0;
+    $('.gs-bar i', row).style.width = `${top ? Math.max(3, (n / top) * 100) : 0}%`;
+    $('.gs-n', row).textContent = n;
+    row.classList.toggle('lead', n > 0 && n === top);
+  });
+  $('.gs-total b', root).textContent = (last && last.total) || 0;
+  // Dòng "vừa đoán"
+  const recent = (last && last.recent) || [];
+  const fresh = recent.filter((r) => !seen.has(`${r.name}|${r.career}|${r.at}`));
+  recent.forEach((r) => seen.add(`${r.name}|${r.career}|${r.at}`));
+  if (fresh.length && !firstLoad) {
+    const r = fresh[0];
+    const c = careers.find((x) => x.name === r.career);
+    $('.gs-ticker', root).innerHTML = `<span class="tk">💌 <b>${esc(r.name)}</b> vừa đoán ${esc(r.career)} ${esc((c && c.emoji) || '')}</span>`;
+    if (step === 'guess') sfx.pick();
+  }
+  if (last) firstLoad = false;
+  // Trạng thái + nút khoá
+  const status = $('.gs-status', root);
+  const lockBtn = $('[data-gact="lock"]', root);
+  lockBtn.disabled = !ok;
+  lockBtn.textContent = last && last.locked ? '🔓 Mở lại bình chọn' : '🔒 Khoá bình chọn';
+  if (!ok) status.textContent = 'Chưa nối Google Sheet · vẫn công bố được nghề bé bốc';
+  else if (!online && lastError) status.textContent = `⚠️ ${lastError}`;
+  else if (!last) status.textContent = 'Đang kết nối Google Sheet…';
+  else status.textContent = last.locked ? `🔒 Đã khoá bình chọn · ${last.total} người đã đoán` : `🟢 Đang nhận phiếu · cập nhật mỗi ${POLL_MS / 1000} giây`;
+}
+
+function renderDrum() {
+  const careers = store.careers();
+  $('.drum-ring', root).innerHTML = careers.map((c, i) => `<span style="animation-delay:${(i * 0.14).toFixed(2)}s">${esc(c.emoji || '🎁')}</span>`).join('');
+  $('.drum-title', root).textContent = `${cap(store.babyPhrase())} đang bốc đồ…`;
+  $('.drum-grid', root).innerHTML = careers.map((c) => `
+    <button class="drum-opt" data-career="${esc(c.name)}"><span class="em">${esc(c.emoji || '🎁')}</span>${esc(c.name)}</button>`).join('');
+  renderDrumNote();
+}
+function renderDrumNote() {
+  $('.drum-note', root).textContent = !gs.configured() ? '' : last && last.locked ? '🔒 Đã khoá bình chọn' : 'Đang khoá bình chọn…';
+}
+
+function renderReveal() {
+  const name = store.getState().pick.career;
+  if (!name) return;
+  const c = store.careers().find((x) => x.name === name) || { name, emoji: '', key: 'generic' };
+  const kid = $('.rv-kid', root);
+  const sig = `${c.key}|${store.settings().babyGender}`;
+  if (kid.dataset.sig !== sig) {
+    kid.dataset.sig = sig;
+    kid.innerHTML = kidSVG(c.key, store.settings().babyGender === 'boy' ? 'boy' : 'girl', '100%', '100%', true);
+  }
+  $('.rv-kicker', root).textContent = `${cap(store.babyPhrase())} đã bốc được`;
+  $('.rv-career', root).textContent = `${c.name}${c.emoji ? ` ${c.emoji}` : ''}`;
+  const stat = $('.rv-stat', root);
+  const names = $('.rv-names', root);
+  if (!gs.configured()) { stat.textContent = 'Chúc mừng bé! 🎉'; names.innerHTML = ''; return; }
+  if (!last || last.result !== name) { stat.textContent = 'Đang đếm người đoán đúng…'; names.innerHTML = ''; return; }
+  const n = last.correct.length;
+  stat.innerHTML = n
+    ? `🎉 <b>${n}</b> / ${last.total} người đoán đúng!`
+    : last.total ? `Chưa ai đoán đúng, ${esc(store.babyPhrase())} thật bất ngờ! 😄` : 'Chưa có ai tham gia đoán.';
+  const MAX = 24;
+  names.innerHTML = last.correct.slice(0, MAX).map((x) => `<span class="chip">${esc(x)}</span>`).join('')
+    + (n > MAX ? `<span class="chip more">+${n - MAX} người nữa</span>` : '');
+}
+return { mount, open, leave, onEsc };
+})();
+
 // ===== js/zip.js =====
 __m['zip'] = (() => {
 // Tạo file .zip đơn giản (không nén — ảnh JPG vốn đã nén sẵn). Không cần thư viện ngoài.
@@ -1803,6 +2274,7 @@ const { careerCardSVG, kidSVG, frameSVG, svgToImage } = __m['art'];
 const { addPhoto, allPhotos, deletePhoto, countPhotos } = __m['db'];
 const { makeZip } = __m['zip'];
 const { $, $$, el, esc, toast, download, sleep } = __m['ui'];
+const guess = __m['guess'];
 
 const W = 1600, H = 1200;
 
@@ -1832,10 +2304,13 @@ function init(section) {
             <h2 class="screen-title">Con của tương lai</h2>
             <p class="screen-sub">Bé thích làm nghề gì nào? Chọn một thẻ nhé!</p>
           </div>
-          <button class="btn btn-ghost" data-act="album">
-            <svg viewBox="0 0 24 24" class="ico"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8l1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5z"/></svg>
-            Album thẻ · <b class="album-count">0</b>
-          </button>
+          <div class="g1-actions">
+            <button class="btn btn-ghost" data-act="album">
+              <svg viewBox="0 0 24 24" class="ico"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8l1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5z"/></svg>
+              Album thẻ · <b class="album-count">0</b>
+            </button>
+            <button class="btn btn-primary" data-act="guess">🔮 Đoán bé bốc gì</button>
+          </div>
         </div>
         <div class="career-grid"></div>
       </div>
@@ -1914,6 +2389,7 @@ function init(section) {
       </div>
     </div>`));
 
+  guess.mount($('.g1', root), { showStep, sparkles, makeBabyCard });
   root.addEventListener('click', onClick);
   const nameField = $('.name-field', root);
   nameField.addEventListener('keydown', (e) => {
@@ -1931,6 +2407,7 @@ function enter() {
 }
 
 function leave() {
+  guess.leave();
   resetFlip();
   closeSlideshow();
   closeName();
@@ -1938,6 +2415,7 @@ function leave() {
 
 function onEsc() {
   if (!$('.slideshow', root).hidden) { closeSlideshow(); return true; }
+  if (guess.onEsc()) return true;
   if (!$('[data-modal="name"]', root).hidden) {
     // Đang sửa tên → Esc chỉ đóng hộp, giữ tên cũ. Lần đầu → Esc = bỏ qua tên.
     if (renaming) closeName(); else confirmName('');
@@ -1959,6 +2437,7 @@ function onClick(e) {
   const act = btn.dataset.act;
   const actions = {
     album: openAlbum,
+    guess: () => guess.open(),
     'back-pick': () => { resetFlip(); showStep('pick'); refreshCount(); },
     rename: () => openName(true),
     keep,
@@ -2005,6 +2484,18 @@ function renderCareers() {
       <div class="label">${esc(c.name)} <span class="emoji">${esc(c.emoji)}</span></div>
     </button>`).join('')
     : '<p class="placeholder">Chưa có nghề nào. Vào Cài đặt để thêm danh sách nghề.</p>';
+}
+
+// Từ màn công bố "Bé bốc đồ": tạo thẻ ước mơ cho chính bé thôi nôi với nghề bé vừa bốc
+function makeBabyCard(careerName) {
+  const c = store.careers().find((x) => x.name === careerName);
+  if (!c) { showStep('pick'); return; }
+  career = c;
+  kidName = store.babyName();
+  setGender(store.settings().babyGender === 'boy' ? 'boy' : 'girl');
+  updateWho();
+  showStep('card');
+  reveal();
 }
 
 function pickCareer(idx) {

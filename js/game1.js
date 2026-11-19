@@ -6,6 +6,7 @@ import { careerCardSVG, kidSVG, frameSVG, svgToImage } from './art.js';
 import { addPhoto, allPhotos, deletePhoto, countPhotos } from './db.js';
 import { makeZip } from './zip.js';
 import { $, $$, el, esc, toast, download, sleep } from './ui.js';
+import * as guess from './guess.js';
 
 const W = 1600, H = 1200;
 
@@ -35,10 +36,13 @@ export function init(section) {
             <h2 class="screen-title">Con của tương lai</h2>
             <p class="screen-sub">Bé thích làm nghề gì nào? Chọn một thẻ nhé!</p>
           </div>
-          <button class="btn btn-ghost" data-act="album">
-            <svg viewBox="0 0 24 24" class="ico"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8l1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5z"/></svg>
-            Album thẻ · <b class="album-count">0</b>
-          </button>
+          <div class="g1-actions">
+            <button class="btn btn-ghost" data-act="album">
+              <svg viewBox="0 0 24 24" class="ico"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8l1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5z"/></svg>
+              Album thẻ · <b class="album-count">0</b>
+            </button>
+            <button class="btn btn-primary" data-act="guess">🔮 Đoán bé bốc gì</button>
+          </div>
         </div>
         <div class="career-grid"></div>
       </div>
@@ -117,6 +121,7 @@ export function init(section) {
       </div>
     </div>`));
 
+  guess.mount($('.g1', root), { showStep, sparkles, makeBabyCard });
   root.addEventListener('click', onClick);
   const nameField = $('.name-field', root);
   nameField.addEventListener('keydown', (e) => {
@@ -134,6 +139,7 @@ export function enter() {
 }
 
 export function leave() {
+  guess.leave();
   resetFlip();
   closeSlideshow();
   closeName();
@@ -141,6 +147,7 @@ export function leave() {
 
 export function onEsc() {
   if (!$('.slideshow', root).hidden) { closeSlideshow(); return true; }
+  if (guess.onEsc()) return true;
   if (!$('[data-modal="name"]', root).hidden) {
     // Đang sửa tên → Esc chỉ đóng hộp, giữ tên cũ. Lần đầu → Esc = bỏ qua tên.
     if (renaming) closeName(); else confirmName('');
@@ -162,6 +169,7 @@ function onClick(e) {
   const act = btn.dataset.act;
   const actions = {
     album: openAlbum,
+    guess: () => guess.open(),
     'back-pick': () => { resetFlip(); showStep('pick'); refreshCount(); },
     rename: () => openName(true),
     keep,
@@ -208,6 +216,18 @@ function renderCareers() {
       <div class="label">${esc(c.name)} <span class="emoji">${esc(c.emoji)}</span></div>
     </button>`).join('')
     : '<p class="placeholder">Chưa có nghề nào. Vào Cài đặt để thêm danh sách nghề.</p>';
+}
+
+// Từ màn công bố "Bé bốc đồ": tạo thẻ ước mơ cho chính bé thôi nôi với nghề bé vừa bốc
+function makeBabyCard(careerName) {
+  const c = store.careers().find((x) => x.name === careerName);
+  if (!c) { showStep('pick'); return; }
+  career = c;
+  kidName = store.babyName();
+  setGender(store.settings().babyGender === 'boy' ? 'boy' : 'girl');
+  updateWho();
+  showStep('card');
+  reveal();
 }
 
 function pickCareer(idx) {

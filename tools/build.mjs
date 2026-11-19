@@ -60,6 +60,12 @@ function order() {
   return out;
 }
 
+// Mã Google Apps Script (tools/google-apps-script/Code.gs) → js/gas-code.js
+// để nút "Chép mã cho Google" trong Cài đặt luôn chép đúng bản mới nhất.
+const gas = readFileSync(join(JS, '..', 'tools', 'google-apps-script', 'Code.gs'), 'utf8');
+writeFileSync(join(JS, 'gas-code.js'),
+  `// TỰ ĐỘNG TẠO từ tools/google-apps-script/Code.gs bởi tools/build.mjs — đừng sửa trực tiếp.\nexport const GAS_CODE = ${JSON.stringify(gas)};\n`);
+
 load(ENTRY);
 const parts = order().map((n) => {
   const m = modules.get(n);

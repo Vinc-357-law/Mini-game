@@ -12,6 +12,9 @@ const SAMPLE_GUESTS = [
 
 export const SAMPLE = {
   babyName: 'Na',
+  babyGender: 'girl',          // bé thôi nôi là bé gái / bé trai (hình trên thẻ ước mơ của bé)
+  voteUrl: '',                 // link ứng dụng web Google Apps Script (bình chọn QR, Game 1)
+  ownerPin: '',                // mã PIN chủ tiệc (tự tạo lần đầu)
   careers: [
     'Bác sĩ | 🩺', 'Phi hành gia | 🚀', 'Đầu bếp | 🍳', 'Lính cứu hỏa | 🚒',
     'Họa sĩ | 🎨', 'Ca sĩ | 🎤', 'Cảnh sát | 👮', 'Giáo viên | 📚',
@@ -35,8 +38,10 @@ function freshState() {
     musicOn: false,
     tree: { items: [], lit: false },
     oven: { winners: [], absent: [] },
+    pick: { career: '', at: 0 },          // nghề bé thôi nôi bốc được (Game 1 · Đoán bé bốc gì)
   };
 }
+const newPin = () => String(1000 + Math.floor(Math.random() * 9000));
 
 function load() {
   try {
@@ -50,6 +55,7 @@ function load() {
       settings: { ...base.settings, ...(data.settings || {}) },
       tree: { ...base.tree, ...(data.tree || {}) },
       oven: { ...base.oven, ...(data.oven || {}) },
+      pick: { ...base.pick, ...(data.pick || {}) },
     };
   } catch (e) {
     console.warn('Không đọc được dữ liệu, dùng mặc định', e);
@@ -59,6 +65,11 @@ function load() {
 
 let state = load();
 const listeners = new Set();
+// Mã PIN chủ tiệc tạo một lần rồi giữ nguyên (phải khớp với mã đã dán vào Google)
+if (!state.settings.ownerPin) {
+  state.settings.ownerPin = newPin();
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* bỏ qua */ }
+}
 
 export const getState = () => state;
 export const settings = () => state.settings;
@@ -73,7 +84,11 @@ export function onChange(fn) { listeners.add(fn); return () => listeners.delete(
 
 export function resetTree() { update((s) => { s.tree = { items: [], lit: false }; }); }
 export function resetOven() { update((s) => { s.oven = { winners: [], absent: [] }; }); }
-export function resetSettingsToSample() { update((s) => { s.settings = { ...SAMPLE }; }); }
+// Khôi phục danh sách mẫu nhưng giữ nguyên phần kết nối Google (link + PIN)
+export function resetSettingsToSample() {
+  update((s) => { s.settings = { ...SAMPLE, voteUrl: s.settings.voteUrl, ownerPin: s.settings.ownerPin }; });
+}
+export function resetPick() { update((s) => { s.pick = { career: '', at: 0 }; }); }
 
 export function exportJSON() {
   return JSON.stringify({ app: 'thoinoi-xmas', version: 1, exportedAt: new Date().toISOString(), ...state }, null, 2);
@@ -87,7 +102,9 @@ export function importJSON(text) {
     musicOn: !!data.musicOn,
     tree: { ...base.tree, ...(data.tree || {}) },
     oven: { ...base.oven, ...(data.oven || {}) },
+    pick: { ...base.pick, ...(data.pick || {}) },
   };
+  if (!state.settings.ownerPin) state.settings.ownerPin = newPin();
   save();
 }
 

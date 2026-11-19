@@ -26,7 +26,7 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 | 8 | Phong cách "cute" (sticker, sổ tay, chữ tròn) giữ nguyên bảng màu đỏ – xanh lá | 🟡 Trang chính xong · chờ duyệt để làm Game 1, 2, 3 + Cài đặt |
 | 9 | Sửa lỗi logic lần 2 (vừa màn hình laptop, tên dài/trống, nút nhạc, phím Space, khay Game 2) | ✅ Xong |
 | 10 | Thêm chi tiết Noel cho sinh động (trang chính) | ✅ Xong |
-| 11 | Game 1: mã QR cho khách đoán nghề bé bốc + Google Sheet + giao diện chủ tiệc | 🔨 Đang làm |
+| 11 | Game 1: mã QR cho khách đoán nghề bé bốc + Google Sheet + giao diện chủ tiệc | ✅ Xong (chờ bạn nối Google Sheet thật, README mục 7) |
 
 ## Nhật ký tiến độ
 
@@ -194,7 +194,46 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 
 **Đã kiểm tra** (Edge headless, `file://`): 1920×1080, 1600×900, 1366×657, 1280×720, 1024×768 đều vừa một màn, không tràn ngang. Dừng hiệu ứng xe tuần lộc ở 7% và 27% để chụp: hiện đúng. Bấm tuần lộc → bong bóng "Ho ho ho! Ông già Noel sắp tới rồi!". Chạy lại toàn bộ kịch bản 3 game + thao tác trang chính: đạt, không lỗi.
 
+### 19/11/2026 — Giai đoạn 11: "Đoán xem bé bốc gì?" (mã QR + Google Sheet) ✅
+**Yêu cầu**: ở Game 1 thêm mã QR cho khách quét và chọn, nối Google Sheet để thống kê. Sau đó bé tự bốc; giao diện chủ tiệc chọn nghề bé bốc và hiện lên màn hình chính. Duyệt: dùng Apps Script, giao diện chủ tiệc trên laptop, hiện tên người đoán đúng.
+**Đã làm**
+- **Mã cho Google** (`tools/google-apps-script/Code.gs`, một file duy nhất):
+  - API cho màn hình lớn (`?api=state|setup|lock|result|reset`, có mã PIN chủ tiệc, trả JSONP).
+  - Trang bình chọn cho điện thoại khách, cùng phong cách: dây đèn, thẻ giấy kem, chọn nghề bằng ô có biểu tượng.
+  - Mỗi điện thoại 1 phiếu, đổi ý được tới khi khoá. Trang tự cập nhật: đã khoá / bé đã bốc / bạn đoán đúng hay chưa.
+  - Lưu ở trang tính **Phiếu**; trang tính **Thống kê** tự cập nhật (số người đoán từng nghề, tỉ lệ, kết quả, người đoán đúng).
+  - Chặn tên có dạng công thức (`=…`).
+- **Màn hình lớn** (`js/guess.js`, nút 🔮 ở Game 1), 3 màn:
+  1. **Bình chọn**: mã QR to; biểu đồ cột cập nhật mỗi 4 giây, nghề dẫn đầu màu vàng có 👑; dòng "💌 Cô Lan vừa đoán Bác sĩ".
+  2. **Bé bốc đồ!**: tự khoá bình chọn, biểu tượng nghề nhảy nhót, chủ tiệc bấm món bé chọn.
+  3. **Công bố**: hình bé thôi nôi (bé gái/bé trai theo Cài đặt) mặc đồ nghề đó, "🎉 3 / 8 người đoán đúng!" + tên người đoán đúng. Có nút **Tạo thẻ ước mơ cho bé** và **Chọn lại**.
+  - Mất mạng / chưa nối Google: vẫn bốc và công bố trên laptop; kết quả gửi lên Google sau khi có mạng lại.
+- **Kết nối** (`js/vote.js`): gọi Google bằng JSONP (thẻ `<script>`) nên chạy được khi mở web bằng `file://`. Mã QR vẽ ngay trên máy bằng thư viện **qrcode-generator** (MIT, tải về `assets/vendor/qrcode.js`).
+- **Cài đặt**:
+  - Chọn Bé gái / Bé trai cho bé thôi nôi.
+  - Mục "Bình chọn bằng mã QR": mã PIN tự tạo; nút **Chép mã cho Google** (điền sẵn PIN; nếu trình duyệt chặn chép thì hiện ô mã để chép tay); ô dán link `/exec`; nút **Kiểm tra kết nối**.
+  - Nút "Xoá phiếu đoán bé bốc gì" (xoá cả trên Google). Khôi phục dữ liệu mẫu giữ nguyên link + PIN.
+- `tools/build.mjs` tự tạo `js/gas-code.js` từ `Code.gs`, để nút "Chép mã" luôn đúng bản mới nhất.
+- README: hướng dẫn MC (mục 3) + **hướng dẫn nối Google Sheet từng bước (mục 7)** + xử lý sự cố.
+
+**Đã kiểm tra** (không có tài khoản Google nên dựng **Google giả lập** bằng Node: chạy đúng `Code.gs` với bảng tính giả trong bộ nhớ):
+- Logic phía Google:
+  - Từ chối sai PIN, phiếu không tên, nghề lạ, phiếu sau khi khoá.
+  - Đổi ý thì cập nhật phiếu cũ, không thêm dòng.
+  - Chặn công thức; công bố trả đúng danh sách người đoán đúng; trang "Thống kê" đúng.
+- Trọn vòng trên giao diện (Edge headless):
+  - Điện thoại khách (390×844) bình chọn → màn hình lớn hiện 8 phiếu, dẫn đầu "Bác sĩ", dòng người vừa đoán.
+  - "Bé bốc đồ!" khoá bình chọn trên Google → chọn Bác sĩ → "3 / 8 người đoán đúng" + 3 tên.
+  - Điện thoại tự đổi sang "Bạn đoán đúng rồi! Chúc mừng Cô Lan!".
+  - Mở lại → vào thẳng màn công bố; "Tạo thẻ ước mơ cho bé" → thẻ "Na · Bác sĩ".
+- Cài đặt: kiểm tra kết nối tốt / sai PIN; mã chép ra có đúng PIN.
+- Chưa nối Google: vẫn bốc và công bố được.
+- Chạy lại toàn bộ kịch bản cũ: đạt, không lỗi.
+
+**Chưa kiểm tra được**: chạy trên Google thật (cần tài khoản Google của bạn) → bạn làm theo README mục 7, bấm "Kiểm tra kết nối", rồi lấy 1–2 điện thoại quét thử.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
-2. Thử trên máy chiếu/TV thật: bấm `F` toàn màn hình, kiểm tra màu, cỡ chữ và âm lượng.
-3. Chạy thử xong → Cài đặt → Làm lại từ đầu (xoá thẻ ước mơ, cây thông, bốc thăm).
+2. Nối Google Sheet cho phần "Đoán xem bé bốc gì?" (README mục 7), bấm "Kiểm tra kết nối", lấy 1–2 điện thoại quét thử; xong vào Cài đặt → "Xoá phiếu đoán bé bốc gì".
+3. Thử trên máy chiếu/TV thật: bấm `F` toàn màn hình, kiểm tra màu, cỡ chữ và âm lượng.
+4. Chạy thử xong → Cài đặt → Làm lại từ đầu (xoá thẻ ước mơ, cây thông, bốc thăm, phiếu đoán bé bốc gì).

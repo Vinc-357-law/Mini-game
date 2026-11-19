@@ -181,6 +181,23 @@ kbd {
 .danger-zone { margin-top: 28px; padding-top: 18px; border-top: 1px dashed var(--line); }
 .danger-zone h3 { margin: 0 0 10px; font-size: 1rem; color: var(--muted); font-weight: 600; }
 .toggle-row { display: flex; align-items: center; gap: 12px; font-size: .98rem; cursor: pointer; }
+/* Cài đặt: chọn bé gái / bé trai */
+.seg { display: inline-flex; gap: 6px; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); }
+.seg label { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 999px; font-size: .92rem; font-weight: 600; color: var(--gold-pale); cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--berry); color: var(--cream); }
+/* Cài đặt: bình chọn bằng mã QR */
+.vote-steps { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
+.vote-step { display: flex; align-items: center; gap: 8px; font-size: .95rem; color: var(--gold-pale); }
+.vote-step.grow { flex: 1 1 420px; }
+.vote-step b { color: var(--candle); }
+.vote-step code { color: var(--gold-pale); background: rgba(255,255,255,.06); padding: 1px 6px; border-radius: 6px; font-family: var(--font-body); }
+.field .vote-step input { flex: 1; min-width: 0; width: auto; border-radius: 10px; padding: 8px 12px; }
+#f-ownerPin { flex: none; width: 7.5em; letter-spacing: .12em; text-align: center; font-weight: 700; }
+.vote-test { font-size: .92rem; color: var(--muted); }
+.vote-test.good { color: #8fe0a8; }
+.vote-test.bad { color: #ffb4a8; }
+.gas-code { width: 100%; min-height: 160px; border-radius: 12px; padding: 10px; font-family: Consolas, monospace; font-size: .8rem; background: rgba(8, 23, 15, .7); border: 1px solid var(--line); }
 .toggle-row input { width: 20px; height: 20px; accent-color: var(--gold); }
 
 /* ---------- Modal ---------- */

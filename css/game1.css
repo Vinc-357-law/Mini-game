@@ -110,6 +110,101 @@
 .slideshow.paused .ss-ico-play { display: block; }
 .slideshow.paused .ss-ico-pause { display: none; }
 
+/* =========================================================
+   "Đoán xem bé bốc gì?" — QR + biểu đồ, bé bốc đồ, công bố
+   ========================================================= */
+.gs-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr); gap: clamp(18px, 3vw, 44px); }
+.gs-qr-card {
+  min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: clamp(12px, 2vh, 22px) 18px; border-radius: 22px; background: var(--cream); color: var(--ink);
+  box-shadow: 0 0 0 4px #fff, 0 16px 30px rgba(0, 0, 0, .35);
+  outline: 2px dashed rgba(184, 50, 58, .45); outline-offset: -10px;
+}
+.gs-qr-title {
+  margin: 0 0 clamp(6px, 1.4vh, 14px); text-align: center; line-height: 1.15;
+  font-family: var(--font-round); font-weight: 800; font-size: clamp(1.15rem, min(2.1vw, 3.6vh), 2rem); color: var(--berry-deep);
+}
+.gs-qr-title b { color: var(--berry); }
+.gs-qr {
+  width: min(100%, 46vh); aspect-ratio: 1; padding: 8px; border-radius: 16px; background: #fff;
+  box-shadow: inset 0 0 0 3px #f2e2c4; display: grid; place-items: center;
+}
+.gs-qr svg { display: block; width: 100%; height: 100%; }
+.gs-qr.empty { aspect-ratio: auto; min-height: 30vh; padding: 18px; }
+.gs-setup { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; font-family: var(--font-hand); color: #6e5440; }
+.gs-setup b { font-family: var(--font-round); font-size: 1.3rem; color: var(--berry-deep); }
+.gs-qr-note { margin: clamp(6px, 1.2vh, 12px) 0 0; font-family: var(--font-hand); font-weight: 600; color: #7a5a40; text-align: center; }
+
+.gs-board {
+  min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 18px 24px;
+  border-radius: 22px; background: rgba(13, 33, 23, .55); border: 1px solid var(--line);
+}
+.gs-total { font-family: var(--font-round); font-weight: 800; font-size: clamp(1.1rem, 1.8vw, 1.6rem); color: var(--cream); }
+.gs-total b { font-size: 1.6em; color: var(--candle); }
+.gs-chart { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-around; gap: 4px; }
+.gs-row {
+  display: grid; grid-template-columns: 2em minmax(5em, 9em) 1fr 2.2em; align-items: center; gap: 10px;
+  font-family: var(--font-round); font-weight: 700; font-size: clamp(.95rem, min(1.5vw, 2.6vh), 1.4rem); color: var(--cream);
+}
+.gs-ico { text-align: center; font-size: 1.35em; font-family: var(--font-emoji); }
+.gs-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gs-bar { height: 1.05em; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, .08); }
+.gs-bar i { display: block; width: 0; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #d44a50, var(--berry)); transition: width .9s cubic-bezier(.3, .8, .3, 1); }
+.gs-row.lead .gs-bar i { background: linear-gradient(90deg, var(--gold), #f6a83a); }
+.gs-row.lead .gs-name::after { content: ' 👑'; font-family: var(--font-emoji); }
+.gs-n { text-align: right; color: var(--candle); }
+.gs-ticker { min-height: 1.7em; font-family: var(--font-hand); font-weight: 700; font-size: clamp(.95rem, 1.4vw, 1.25rem); color: var(--gold-pale); }
+.gs-ticker .tk { display: inline-block; animation: tickIn .55s cubic-bezier(.3, 1.5, .5, 1) both; }
+@keyframes tickIn { from { opacity: 0; translate: 0 10px; scale: .9; } to { opacity: 1; translate: 0 0; scale: 1; } }
+
+/* Bé bốc đồ: biểu tượng nghề nhảy nhót, chủ tiệc bấm món bé chọn */
+.drum-stage { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(6px, 1.4vh, 14px); text-align: center; }
+.drum-ring { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(8px, 1.4vw, 18px); font-family: var(--font-emoji); font-size: clamp(2rem, min(4vw, 7vh), 3.6rem); }
+.drum-ring span { display: inline-block; animation: hop 1.1s ease-in-out infinite; }
+@keyframes hop { 0%, 100% { translate: 0 0; } 45% { translate: 0 -16px; } }
+.drum-title {
+  margin: 0; font-family: var(--font-round); font-weight: 800; font-size: clamp(2.2rem, min(5vw, 8vh), 4.4rem); line-height: 1.1;
+  color: var(--candle); text-shadow: 0 4px 0 var(--berry-deep), 0 0 26px rgba(255, 190, 100, .45);
+}
+.drum-sub { margin: 0 0 4px; font-family: var(--font-hand); font-weight: 700; font-size: clamp(1rem, 1.6vw, 1.3rem); color: var(--gold-pale); }
+.drum-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(8px, 1.4vw, 16px); width: min(100%, 1040px); }
+.drum-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: clamp(8px, 1.4vh, 14px) 8px; cursor: pointer;
+  border: 0; border-radius: 18px; background: var(--cream); color: var(--berry-deep);
+  font-family: var(--font-round); font-weight: 800; font-size: clamp(1rem, min(1.6vw, 2.8vh), 1.4rem);
+  box-shadow: 0 0 0 3px #fff, 0 6px 0 #cdb48a, 0 10px 18px rgba(0, 0, 0, .3);
+  transition: transform .2s, box-shadow .2s;
+}
+.drum-opt .em { font-family: var(--font-emoji); font-size: 1.9em; line-height: 1.15; }
+.drum-opt:hover { transform: translateY(-4px) rotate(-1.5deg); }
+.drum-opt:active { transform: translateY(3px); box-shadow: 0 0 0 3px #fff, 0 2px 0 #cdb48a, 0 4px 10px rgba(0, 0, 0, .3); }
+.drum-note { font-family: var(--font-hand); font-weight: 700; color: var(--gold-pale); }
+
+/* Công bố */
+.rv-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: center; gap: clamp(20px, 4vw, 64px); }
+.rv-kid { height: min(72vh, 100%); max-height: 660px; min-height: 0; display: grid; place-items: center; }
+.rv-kid svg { width: 100%; height: 100%; filter: url(#sticker) drop-shadow(0 12px 18px rgba(0, 0, 0, .35)); animation: rvPop .9s cubic-bezier(.3, 1.5, .5, 1) both; }
+@keyframes rvPop { from { opacity: 0; scale: .6; rotate: -6deg; } to { opacity: 1; scale: 1; rotate: 0deg; } }
+.rv-kicker { margin: 0; font-family: var(--font-hand); font-weight: 700; font-size: clamp(1.2rem, 2.2vw, 1.9rem); color: var(--gold-pale); }
+.rv-career {
+  margin: .08em 0 .12em; font-family: var(--font-round); font-weight: 800; line-height: 1.05;
+  font-size: clamp(3rem, min(7vw, 12vh), 6.6rem); color: #ffd56e;
+  text-shadow: 0 5px 0 var(--berry-deep), 0 0 34px rgba(255, 200, 100, .45);
+  animation: rvPop .9s cubic-bezier(.3, 1.5, .5, 1) .15s both;
+}
+.rv-stat { margin: 0 0 10px; font-family: var(--font-round); font-weight: 800; font-size: clamp(1.2rem, 2vw, 1.8rem); color: var(--cream); }
+.rv-stat b { font-size: 1.3em; color: var(--candle); }
+.rv-names { display: flex; flex-wrap: wrap; gap: 8px; max-height: 22vh; overflow: hidden; }
+.rv-names .chip { cursor: default; border: 0; background: var(--cream); color: var(--berry-deep); font-family: var(--font-hand); font-weight: 700; box-shadow: 0 0 0 2px #fff; }
+.rv-names .chip.more { background: var(--berry); color: var(--cream); }
+.rv-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(14px, 3vh, 26px); }
+
+@media (max-width: 900px) {
+  .gs-body, .rv-wrap { grid-template-columns: 1fr; }
+  .drum-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rv-kid { height: 40vh; }
+}
+
 @media (max-width: 900px) {
   .career-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 220px; }
   .g1-bar { flex-wrap: wrap; justify-content: center; }
