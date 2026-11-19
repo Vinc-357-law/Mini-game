@@ -2,7 +2,8 @@
 
 ## Mục tiêu
 Web mini game cho tiệc thôi nôi của bé vào tháng 12/2026, để MC điều khiển trên máy chiếu.
-Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàng như nến, tuyết rơi thưa, nhạc hộp nhẹ.
+Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Giáng sinh, ánh vàng như nến, tuyết rơi thưa, nhạc hộp nhẹ.
+*(Từ 19/11/2026: đổi từ nền xanh đêm sang đỏ – xanh lá, bỏ webcam. Xem nhật ký cuối.)*
 
 ## Phương án đã duyệt (19/11/2026)
 - HTML/CSS/JS thuần, không cần server, chạy bằng Live Server trong VS Code. Chạy được cả khi không có mạng (font tải sẵn, không dùng CDN).
@@ -19,7 +20,8 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 | 2 | Game 1 – Photobooth "Con của tương lai" (bản Đơn giản) + Album | ✅ Xong |
 | 3 | Game 2 – Cùng trang trí cây thông | ✅ Xong |
 | 4 | Game 3 – Lò nướng bánh gừng may mắn | ✅ Xong |
-| 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ✅ Xong (bám mặt chờ thử webcam thật) |
+| 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ✅ Xong (sau đó bỏ ở giai đoạn 6) |
+| 6 | Đổi tông đỏ – xanh lá, bỏ webcam: Game 1 thành "Thẻ ước mơ", nhấp đúp `index.html` là chạy | ✅ Xong |
 
 ## Nhật ký tiến độ
 
@@ -96,8 +98,27 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 
 **Đã kiểm tra** qua chính server mới (Edge headless): trang chính → Game 1 chụp và lưu album → Game 2 treo 2 món và thắp sáng → Game 3 nướng, công bố, Tiếp tục; mở bằng `file://` hiện đúng hộp hướng dẫn.
 
+### 19/11/2026 — Giai đoạn 6: Tông đỏ – xanh lá, bỏ webcam ✅
+**Yêu cầu**: màu ấm cúng hơn, chủ đạo đỏ – xanh lá cho không khí Giáng sinh; bỏ webcam.
+**Đã làm**
+- **Bảng màu mới**: nền xanh lá thông đậm, có kẻ caro đỏ rất mờ và quầng sáng vàng ở giữa; nút chính đỏ nhung viền vàng; nút phụ xanh lá; hộp thoại xanh lá có dải đỏ trên đầu; favicon mới.
+- **Trang chính**: 3 thẻ game kiểu tấm thiệp giấy kem, viền đỏ, ruy băng đỏ chéo góc, hình minh hoạ trên nền xanh.
+- **Cây thông**: phòng khách tường đỏ rượu có sọc mờ, sàn gỗ; hộp quà nằm trên sàn. Hộp quà xanh dương đổi thành xanh lá.
+- **Lò nướng**: tường gạch caro đỏ – kem (phủ tối nhẹ cho đỡ chói), lò màu xanh rêu, viền cửa lò đỏ, thẻ "Đang bốc" màu đỏ.
+- **Game 1 "Con của tương lai" thành "Thẻ ước mơ"** (không dùng webcam):
+  - Thẻ chọn nghề vẽ một bé mặc **đồ của đúng nghề** (áo blouse, đồ phi hành gia, áo đầu bếp, áo lính cứu hoả có sọc phản quang, áo hoạ sĩ, áo ca sĩ lấp lánh, đồng phục cảnh sát, áo len giáo viên; nghề khác mặc áo len Noel), đội mũ, cầm đạo cụ.
+  - MC chọn **Bé trai / Bé gái** (bé gái có tóc buộc hai bên với nơ đỏ). Trong Cài đặt có thể ghi `Bin | trai`, `Na | gái` để web tự chọn khi chọn hoặc gõ đúng tên.
+  - Bấm **Lật thẻ**: mặt sau thẻ đỏ có ngôi sao vàng, lật chậm 1,1 giây ra thẻ 1600×1200: bé mặc đồ nghề + "MAI NÀY / Bin / là Lính cứu hỏa 🚒" + ruy băng "Thôi nôi bé Na · Giáng sinh 2026" + viền Noel đỏ. Có tiếng chuông và lấp lánh.
+  - **Lưu thẻ** (Space) vào album. Album, tải từng thẻ, tải cả bộ .zip, trình chiếu vẫn như cũ.
+  - Bố mẹ dùng điện thoại chụp bé đứng cạnh màn hình.
+- **Bỏ webcam**: xoá `js/facetrack.js`, thư viện MediaPipe (~19MB) và công tắc "Photobooth nâng cao" trong Cài đặt.
+- **Nhấp đúp `index.html` là chạy**: thêm `tools/build.mjs` gộp các file trong `js/` thành `js/app.bundle.js` (script thường, không phải module). Nhạc riêng `bgm.mp3` cũng nạp được khi mở bằng file. `Mo-web.bat` giữ lại làm cách dự phòng. Bỏ hộp cảnh báo "mở sai cách".
+
+**Đã kiểm tra** (Edge headless, mở bằng `file://`): trang chính → chọn 3 nghề, chọn tên từ danh sách, gõ tên, chọn bé gái thủ công → lật thẻ → lưu, album 3 thẻ → cây thông treo 2 món + thắp sáng → lò nướng công bố + Tiếp tục → Cài đặt. Không có lỗi trong Console. Bề ngang 390px không tràn.
+**Sửa trong lúc test**: gõ tay tên bé có trong danh sách (vd. "Bin | trai") vẫn ra hình bé gái của bé trước → giờ web tự tra giới tính theo tên.
+**Lưu ý khi sửa code**: sửa file trong `js/` xong phải chạy `node tools/build.mjs` để cập nhật `js/app.bundle.js`.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
-1. Mở bằng Live Server, nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé, khách, giải thưởng) → Xuất file sao lưu.
-2. Thử Photobooth với webcam thật trên đúng laptop sẽ dùng (cả bản thường và bản nâng cao); báo lại nếu mũ lệch để chỉnh.
-3. Thử trên máy chiếu/TV thật: bấm `F` toàn màn hình, kiểm tra cỡ chữ và âm lượng.
-4. Chạy thử xong → Cài đặt → Làm lại từ đầu (xoá ảnh, cây thông, bốc thăm).
+1. Nhấp đúp `index.html`, nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
+2. Thử trên máy chiếu/TV thật: bấm `F` toàn màn hình, kiểm tra màu, cỡ chữ và âm lượng.
+3. Chạy thử xong → Cài đặt → Làm lại từ đầu (xoá thẻ ước mơ, cây thông, bốc thăm).

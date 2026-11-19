@@ -149,15 +149,20 @@ function scheduler() {
 async function checkMp3() {
   if (mp3Checked) return;
   mp3Checked = true;
-  try {
-    const res = await fetch('assets/audio/bgm.mp3', { method: 'HEAD', cache: 'no-store' });
-    const type = res.headers.get('content-type') || '';
-    if (res.ok && !type.includes('text/html')) {
-      mp3 = new Audio('assets/audio/bgm.mp3');
-      mp3.loop = true;
-      mp3.volume = 0.35;
-    }
-  } catch { /* không có file: dùng hộp nhạc */ }
+  // Thử nạp file nhạc riêng (chạy được cả khi mở bằng file://). Không có file → dùng hộp nhạc.
+  const a = new Audio();
+  const ok = await new Promise((resolve) => {
+    const t = setTimeout(() => resolve(false), 2500);
+    a.addEventListener('canplay', () => { clearTimeout(t); resolve(true); }, { once: true });
+    a.addEventListener('error', () => { clearTimeout(t); resolve(false); }, { once: true });
+    a.preload = 'auto';
+    a.src = 'assets/audio/bgm.mp3';
+  });
+  if (ok) {
+    a.loop = true;
+    a.volume = 0.35;
+    mp3 = a;
+  }
 }
 
 export async function startMusic() {

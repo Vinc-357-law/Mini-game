@@ -2,27 +2,32 @@
    Thôi nôi · Mini game Giáng sinh — style chung
    ========================================================= */
 :root {
-  --night-950: #050c18;
-  --night-900: #07101f;
-  --night-800: #0b1a33;
-  --night-700: #12264a;
-  --night-600: #1b335f;
-  --night-500: #2a4677;
+  /* Xanh lá thông (nền) */
+  --pine-950: #08170f;
+  --pine-900: #0d2117;
+  --pine-800: #12301f;
+  --pine-700: #1a4230;
+  --pine-600: #22553d;
+  --pine-500: #2f6e50;
+  /* Đỏ nhung (nhấn) */
+  --berry: #b8323a;
+  --berry-deep: #8c1f2a;
+  --berry-dark: #5a1219;
 
   --gold: #f2c46d;
   --gold-deep: #d9a441;
   --gold-pale: #fbe7b5;
   --candle: #ffcf7a;
-  --cream: #fdf6e7;
-  --text: #f6efe0;
-  --muted: #aab6cc;
+  --cream: #fdf3df;
+  --paper: #f8ecd4;
+  --ink: #3b2414;
+  --text: #f8f0e0;
+  --muted: #bcc9b6;
   --red: #c8473f;
   --red-deep: #9e2f2a;
-  --pine: #1f5a43;
-  --pine-deep: #153f30;
 
-  --glass: rgba(18, 38, 74, 0.55);
-  --glass-strong: rgba(11, 26, 51, 0.86);
+  --glass: rgba(20, 52, 37, 0.62);
+  --glass-strong: rgba(13, 33, 23, 0.9);
   --line: rgba(242, 196, 109, 0.28);
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
   --glow: 0 0 0 1px rgba(242, 196, 109, 0.35), 0 10px 40px rgba(242, 196, 109, 0.18);
@@ -41,9 +46,11 @@ body {
   font-family: var(--font-body);
   color: var(--text);
   background:
-    radial-gradient(ellipse 80% 55% at 50% 115%, rgba(255, 196, 110, 0.20), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 15% -10%, rgba(80, 120, 200, 0.18), transparent 70%),
-    linear-gradient(180deg, var(--night-800) 0%, var(--night-900) 70%, var(--night-950) 100%);
+    radial-gradient(ellipse 70% 55% at 50% 42%, rgba(255, 196, 110, 0.13), transparent 70%),
+    radial-gradient(ellipse 80% 50% at 50% 118%, rgba(184, 50, 58, 0.34), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(184, 50, 58, .05) 0 2px, transparent 2px 64px),
+    repeating-linear-gradient(0deg, rgba(184, 50, 58, .05) 0 2px, transparent 2px 64px),
+    linear-gradient(180deg, var(--pine-700) 0%, var(--pine-800) 55%, var(--pine-900) 100%);
   background-attachment: fixed;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -83,7 +90,7 @@ body.immersive .topbar > * { pointer-events: none; }
   backdrop-filter: blur(6px);
   transition: background .25s, border-color .25s, transform .25s;
 }
-.icon-btn:hover { background: rgba(42, 70, 119, 0.7); border-color: var(--gold); transform: translateY(-1px); }
+.icon-btn:hover { background: rgba(140, 31, 42, 0.75); border-color: var(--gold); transform: translateY(-1px); }
 .icon-btn .ico-off { display: none; }
 .icon-btn[aria-pressed="false"] .ico-on { display: none; }
 .icon-btn[aria-pressed="false"] .ico-off { display: block; opacity: .7; }
@@ -100,16 +107,18 @@ body.immersive .topbar > * { pointer-events: none; }
 }
 .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 .btn-primary {
-  color: #2a1a06;
-  background: linear-gradient(180deg, #ffd98f 0%, var(--gold) 55%, var(--gold-deep) 100%);
-  box-shadow: 0 6px 24px rgba(242, 196, 109, .28), inset 0 1px 0 rgba(255, 255, 255, .5);
+  color: var(--cream);
+  background: linear-gradient(180deg, #d44a50 0%, var(--berry) 50%, var(--berry-deep) 100%);
+  border-color: rgba(242, 196, 109, .75);
+  box-shadow: 0 6px 24px rgba(140, 31, 42, .45), inset 0 1px 0 rgba(255, 220, 200, .35);
+  text-shadow: 0 1px 0 rgba(60, 10, 15, .4);
 }
-.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(242, 196, 109, .4), inset 0 1px 0 rgba(255,255,255,.5); }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--gold); box-shadow: 0 10px 32px rgba(184, 50, 58, .5), 0 0 22px rgba(242, 196, 109, .25), inset 0 1px 0 rgba(255,220,200,.35); }
 .btn-ghost {
   color: var(--gold-pale); background: var(--glass); border-color: var(--line);
   backdrop-filter: blur(6px);
 }
-.btn-ghost:hover:not(:disabled) { border-color: var(--gold); background: rgba(42, 70, 119, .6); }
+.btn-ghost:hover:not(:disabled) { border-color: var(--gold); background: rgba(34, 85, 61, .75); }
 .btn-danger { color: #ffd9d4; background: rgba(158, 47, 42, .35); border-color: rgba(200, 71, 63, .6); }
 .btn-danger:hover:not(:disabled) { background: rgba(158, 47, 42, .6); }
 .btn-lg { padding: 16px 36px; font-size: 1.2rem; }
@@ -154,27 +163,42 @@ kbd {
 }
 .home-sub { margin: 6px 0 36px; color: var(--muted); font-size: 1.1rem; }
 .game-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; width: 100%; }
+/* Thẻ game: tấm thiệp giấy kem, ruy băng đỏ ở góc */
 .game-card {
-  position: relative; display: flex; flex-direction: column; align-items: center;
+  position: relative; display: flex; flex-direction: column; align-items: center; overflow: hidden;
   padding: 22px 22px 26px; border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(27, 51, 95, .72), rgba(11, 26, 51, .78));
-  border: 1px solid var(--line); text-decoration: none; color: inherit;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 35%, #fffaf0, transparent 75%),
+    linear-gradient(180deg, var(--cream), var(--paper));
+  border: 3px solid var(--berry-deep); outline: 1px solid rgba(242, 196, 109, .9); outline-offset: -9px;
+  text-decoration: none; color: var(--ink);
   box-shadow: var(--shadow); cursor: pointer;
-  transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
+}
+.game-card::before {
+  content: ''; position: absolute; top: 20px; right: -44px; width: 170px; height: 24px;
+  transform: rotate(40deg);
+  background: linear-gradient(180deg, #d44a50, var(--berry) 50%, var(--berry-deep));
+  border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold);
+  box-shadow: 0 3px 8px rgba(0,0,0,.25);
 }
 .game-card:hover, .game-card:focus-visible {
-  transform: translateY(-6px); border-color: rgba(242, 196, 109, .7);
-  box-shadow: var(--shadow), 0 0 50px rgba(242, 196, 109, .18); outline: none;
+  transform: translateY(-6px); outline-color: var(--gold-deep);
+  box-shadow: var(--shadow), 0 0 50px rgba(255, 207, 122, .3); outline-style: solid;
 }
 .card-num {
-  position: absolute; top: 14px; left: 16px; width: 30px; height: 30px; border-radius: 50%;
-  display: grid; place-items: center; font-size: .85rem; font-weight: 700;
-  color: var(--gold); border: 1px solid var(--line);
+  position: absolute; top: 16px; left: 18px; width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center; font-size: .9rem; font-weight: 700;
+  color: var(--cream); background: var(--pine-600); border: 2px solid var(--gold);
 }
-.card-art { width: 100%; aspect-ratio: 4 / 3; display: grid; place-items: center; }
+.card-art {
+  width: 100%; aspect-ratio: 4 / 3; display: grid; place-items: center; border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 55%, var(--pine-500), var(--pine-700) 75%);
+  box-shadow: inset 0 0 30px rgba(0,0,0,.35);
+}
 .card-art svg { width: 82%; height: 100%; filter: drop-shadow(0 10px 18px rgba(0,0,0,.35)); }
-.game-card h2 { margin: 8px 0 6px; font-size: 1.32rem; font-weight: 700; color: var(--cream); }
-.game-card p { margin: 0; color: var(--muted); font-size: .98rem; }
+.game-card h2 { margin: 14px 0 6px; font-size: 1.32rem; font-weight: 700; color: var(--berry-deep); }
+.game-card p { margin: 0; color: #6e5440; font-size: .98rem; }
 .kbd-hint { margin-top: 30px; color: var(--muted); font-size: .9rem; opacity: .8; }
 
 /* ---------- Cài đặt ---------- */
@@ -193,7 +217,7 @@ kbd {
 .field .hint code { color: var(--gold-pale); background: rgba(255,255,255,.06); padding: 1px 6px; border-radius: 6px; font-family: var(--font-body); }
 .field textarea, .field input[type="text"] {
   width: 100%; border-radius: 12px; padding: 12px 14px; resize: vertical;
-  background: rgba(5, 12, 24, .55); border: 1px solid rgba(170, 182, 204, .22);
+  background: rgba(8, 23, 15, .55); border: 1px solid rgba(188, 201, 182, .22);
   line-height: 1.55; font-size: .98rem; outline: none; transition: border-color .2s;
 }
 .field textarea { min-height: 190px; }
@@ -210,13 +234,15 @@ kbd {
 /* ---------- Modal ---------- */
 .modal {
   position: fixed; inset: 0; z-index: 80; display: grid; place-items: center;
-  background: rgba(3, 8, 18, .62); backdrop-filter: blur(4px);
+  background: rgba(6, 16, 10, .62); backdrop-filter: blur(4px);
   animation: fadeIn .3s ease both; padding: 24px;
 }
 .modal-card {
   width: min(720px, 100%); max-height: calc(100vh - 48px); overflow: auto;
-  background: linear-gradient(180deg, rgba(27, 51, 95, .97), rgba(11, 26, 51, .98));
-  border: 1px solid rgba(242, 196, 109, .45); border-radius: 26px; padding: 28px 30px;
+  background:
+    linear-gradient(90deg, var(--berry-deep), var(--berry) 50%, var(--berry-deep)) top / 100% 8px no-repeat,
+    linear-gradient(180deg, rgba(30, 75, 54, .98), rgba(15, 40, 28, .99));
+  border: 1px solid rgba(242, 196, 109, .45); border-radius: 26px; padding: 32px 30px 28px;
   box-shadow: var(--shadow), 0 0 60px rgba(242, 196, 109, .12);
   animation: popIn .4s cubic-bezier(.2,.9,.3,1.2) both;
 }
@@ -225,17 +251,17 @@ kbd {
 .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
 .text-input {
   width: 100%; border-radius: 14px; padding: 14px 18px; font-size: 1.3rem;
-  background: rgba(5, 12, 24, .6); border: 1px solid rgba(170, 182, 204, .3); outline: none;
+  background: rgba(8, 23, 15, .6); border: 1px solid rgba(188, 201, 182, .3); outline: none;
 }
 .text-input:focus { border-color: var(--gold); }
 .chips { display: flex; flex-wrap: wrap; gap: 10px; }
 .chip {
   padding: 9px 18px; border-radius: 999px; cursor: pointer; font-size: 1.02rem; font-weight: 500;
-  background: rgba(255, 255, 255, .06); border: 1px solid rgba(170, 182, 204, .25);
+  background: rgba(255, 255, 255, .06); border: 1px solid rgba(188, 201, 182, .25);
   transition: background .2s, border-color .2s, transform .2s;
 }
 .chip:hover:not(:disabled) { border-color: var(--gold); background: rgba(242, 196, 109, .14); transform: translateY(-1px); }
-.chip.selected { background: rgba(242, 196, 109, .25); border-color: var(--gold); color: var(--cream); }
+.chip.selected { background: var(--berry); border-color: var(--gold); color: var(--cream); }
 .chip:disabled { text-decoration: line-through; opacity: .38; cursor: not-allowed; }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -250,10 +276,6 @@ kbd {
   box-shadow: var(--shadow); transition: opacity .3s, transform .3s;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
-
-/* ---------- Cảnh báo mở bằng file:// ---------- */
-.file-warning { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 24px; background: rgba(3, 8, 18, .88); }
-.file-warning ol { margin: 0; padding-left: 22px; line-height: 1.9; font-size: 1.05rem; }
 
 /* ---------- Màn chờ "đang xây dựng" ---------- */
 .placeholder { margin: auto; text-align: center; color: var(--muted); }

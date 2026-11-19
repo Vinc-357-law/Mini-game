@@ -1,24 +1,21 @@
-// Game 1 — Photobooth "Con của tương lai"
+// Game 1 — "Con của tương lai": Thẻ ước mơ (không cần webcam)
+// Bé chọn nghề → MC gõ tên, chọn bé trai/bé gái → lật thẻ có hình bé mặc đồ nghề đó.
 import * as store from './storage.js';
 import { sfx } from './audio.js';
-import { careerCardSVG, hatSVG, propSVG, frameSVG, imageWithOverride } from './art.js';
+import { careerCardSVG, kidSVG, frameSVG, imageWithOverride, svgToImage } from './art.js';
 import { addPhoto, allPhotos, deletePhoto, countPhotos } from './db.js';
 import { makeZip } from './zip.js';
 import { $, $$, el, esc, toast, download, sleep } from './ui.js';
-import * as tracker from './facetrack.js';
 
 const W = 1600, H = 1200;
-const FACE = { x: 800, y: 640, r: 270 };   // ô tròn đặt mặt (bản Đơn giản)
 
-let root, canvas, ctx, video;
-let stream = null;
-let step = 'pick';
+let root;
 let career = null;         // { name, emoji, key, slug }
 let kidName = '';
-let hatImg = null, propImg = null, frameImg = null;
-const imgCache = new Map();
-let rafId = 0;
+let gender = 'boy';
+let frameImg = null;
 let busy = false;
+let renderSeq = 0;
 let lastBlob = null, lastUrl = null;
 let albumUrls = [];
 let photos = [];
@@ -37,42 +34,33 @@ export function init(section) {
             <p class="screen-sub">Bé thích làm nghề gì nào? Chọn một thẻ nhé!</p>
           </div>
           <button class="btn btn-ghost" data-act="album">
-            <svg viewBox="0 0 24 24" class="ico"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-8 7"/></svg>
-            Album ảnh · <b class="album-count">0</b>
+            <svg viewBox="0 0 24 24" class="ico"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M12 8l1.5 3 3.3.5-2.4 2.3.6 3.2-3-1.6-3 1.6.6-3.2-2.4-2.3 3.3-.5z"/></svg>
+            Album thẻ · <b class="album-count">0</b>
           </button>
         </div>
         <div class="career-grid"></div>
       </div>
 
-      <div class="g1-step" data-step="camera" hidden>
-        <div class="stage"><div class="frame-box">
-          <canvas class="cam-canvas" width="${W}" height="${H}"></canvas>
-          <div class="cam-guide">Đưa mặt vào khung nhé!</div>
-          <div class="cam-glow"></div>
-          <div class="countdown"></div>
-          <div class="cam-msg" hidden></div>
+      <div class="g1-step" data-step="card" hidden>
+        <div class="stage"><div class="frame-box flip-box">
+          <div class="flip">
+            <div class="flip-face flip-back">
+              <div class="back-inner">
+                <svg viewBox="0 0 100 100" class="back-star"><path d="M50 6l12.9 26.2 28.9 4.2-20.9 20.4 4.9 28.8L50 72 24.2 85.6l4.9-28.8L8.2 36.4l28.9-4.2z"/></svg>
+                <p class="back-title">Thẻ ước mơ</p>
+                <p class="back-sub">Mai này con sẽ là…</p>
+              </div>
+            </div>
+            <div class="flip-face flip-front"><img class="card-img" alt="Thẻ ước mơ"></div>
+          </div>
         </div></div>
         <div class="g1-bar">
           <button class="btn btn-ghost" data-act="back-pick">
             <svg viewBox="0 0 24 24" class="ico"><path d="M15 5l-7 7 7 7"/></svg> Đổi nghề
           </button>
           <button class="g1-who" data-act="rename" title="Đổi tên bé"></button>
-          <button class="btn btn-primary btn-lg" data-act="shoot" data-primary>
-            <svg viewBox="0 0 24 24" class="ico"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-            Chụp ảnh
-          </button>
-        </div>
-      </div>
-
-      <div class="g1-step" data-step="review" hidden>
-        <div class="stage"><div class="frame-box"><img class="review-img" alt="Ảnh vừa chụp"></div></div>
-        <div class="g1-bar">
-          <button class="btn btn-ghost btn-lg" data-act="retake">
-            <svg viewBox="0 0 24 24" class="ico"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4"/></svg> Chụp lại
-          </button>
-          <p class="review-note">Ảnh đẹp chưa nào?</p>
-          <button class="btn btn-primary btn-lg" data-act="keep" data-primary>
-            <svg viewBox="0 0 24 24" class="ico"><path d="M5 12l5 5 9-10"/></svg> Giữ ảnh
+          <button class="btn btn-primary btn-lg" data-act="keep" data-primary disabled>
+            <svg viewBox="0 0 24 24" class="ico"><path d="M5 12l5 5 9-10"/></svg> Lưu thẻ
           </button>
         </div>
       </div>
@@ -85,7 +73,7 @@ export function init(section) {
           </div>
           <div class="g1-actions">
             <button class="btn btn-ghost" data-act="back-pick">
-              <svg viewBox="0 0 24 24" class="ico"><path d="M15 5l-7 7 7 7"/></svg> Chụp tiếp
+              <svg viewBox="0 0 24 24" class="ico"><path d="M15 5l-7 7 7 7"/></svg> Làm thẻ tiếp
             </button>
             <button class="btn btn-ghost" data-act="zip">
               <svg viewBox="0 0 24 24" class="ico"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Tải cả bộ
@@ -102,11 +90,15 @@ export function init(section) {
         <div class="modal-card">
           <h3>Bé tên là gì nhỉ?</h3>
           <p class="modal-sub">MC gõ tên bé hoặc chọn bên dưới. Có thể bỏ qua.</p>
+          <div class="gender-row">
+            <button class="chip gender-chip" data-gender="boy">👦 Bé trai</button>
+            <button class="chip gender-chip" data-gender="girl">👧 Bé gái</button>
+          </div>
           <input class="text-input name-field" maxlength="24" placeholder="Tên bé…" autocomplete="off">
           <div class="chips name-chips" style="margin-top:16px"></div>
           <div class="modal-actions">
             <button class="btn btn-ghost" data-act="name-skip">Bỏ qua</button>
-            <button class="btn btn-primary" data-act="name-ok" data-primary>Tiếp tục</button>
+            <button class="btn btn-primary" data-act="name-ok" data-primary>Lật thẻ</button>
           </div>
         </div>
       </div>
@@ -114,20 +106,14 @@ export function init(section) {
       <div class="slideshow" hidden>
         <img class="ss-img" alt=""><img class="ss-img" alt="">
         <div class="ss-bar">
-          <button class="icon-btn" data-act="ss-prev" title="Ảnh trước"><svg viewBox="0 0 24 24" class="ico"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="icon-btn" data-act="ss-prev" title="Thẻ trước"><svg viewBox="0 0 24 24" class="ico"><path d="M15 5l-7 7 7 7"/></svg></button>
           <button class="icon-btn" data-act="ss-pause" data-primary title="Tạm dừng / tiếp tục (Space)"><svg viewBox="0 0 24 24" class="ico ss-ico-pause"><path d="M8 5v14M16 5v14"/></svg><svg viewBox="0 0 24 24" class="ico ss-ico-play"><path d="M7 5l12 7-12 7z"/></svg></button>
-          <button class="icon-btn" data-act="ss-next" title="Ảnh sau"><svg viewBox="0 0 24 24" class="ico"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button class="icon-btn" data-act="ss-next" title="Thẻ sau"><svg viewBox="0 0 24 24" class="ico"><path d="M9 5l7 7-7 7"/></svg></button>
           <span class="ss-count"></span>
           <button class="icon-btn" data-act="ss-close" title="Đóng (Esc)"><svg viewBox="0 0 24 24" class="ico"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
       </div>
     </div>`));
-
-  canvas = $('.cam-canvas', root);
-  ctx = canvas.getContext('2d');
-  video = document.createElement('video');
-  video.playsInline = true;
-  video.muted = true;
 
   root.addEventListener('click', onClick);
   const nameField = $('.name-field', root);
@@ -148,8 +134,6 @@ export function enter() {
 }
 
 export function leave() {
-  stopLoop();
-  stopCamera();
   closeSlideshow();
   closeName();
 }
@@ -164,6 +148,8 @@ export function onEsc() {
 function onClick(e) {
   const card = e.target.closest('.career-card');
   if (card) { pickCareer(Number(card.dataset.idx)); return; }
+  const g = e.target.closest('.gender-chip');
+  if (g) { setGender(g.dataset.gender); return; }
   const chip = e.target.closest('.name-chips .chip');
   if (chip) { confirmName(chip.dataset.name); return; }
   const btn = e.target.closest('[data-act]');
@@ -173,8 +159,6 @@ function onClick(e) {
     album: openAlbum,
     'back-pick': () => { showStep('pick'); refreshCount(); },
     rename: () => openName(),
-    shoot,
-    retake: () => { showStep('camera'); },
     keep,
     zip: downloadAll,
     slideshow: openSlideshow,
@@ -191,9 +175,7 @@ function onClick(e) {
 }
 
 function showStep(name) {
-  step = name;
   $$('.g1-step', root).forEach((s) => { s.hidden = s.dataset.step !== name; });
-  if (name === 'camera') startLoop(); else stopLoop();
   requestAnimationFrame(fitStages);
 }
 
@@ -217,48 +199,35 @@ function renderCareers() {
   grid.style.setProperty('--cols', list.length <= 6 ? 3 : 4);
   grid.innerHTML = list.length ? list.map((c, i) => `
     <button class="career-card" data-idx="${i}">
-      <div class="art">${careerCardSVG(c.key)}</div>
+      <div class="art">${careerCardSVG(c.key, i)}</div>
       <div class="label">${esc(c.name)} <span class="emoji">${esc(c.emoji)}</span></div>
     </button>`).join('')
     : '<p class="placeholder">Chưa có nghề nào. Vào Cài đặt để thêm danh sách nghề.</p>';
 }
 
-async function loadCareerImages(c) {
-  const k = c.key === 'generic' ? c.slug : c.key;
-  if (!imgCache.has(k)) {
-    imgCache.set(k, Promise.all([
-      imageWithOverride(`assets/props/${k}-hat.png`, hatSVG(c.key)),
-      imageWithOverride(`assets/props/${k}-prop.png`, propSVG(c.key)),
-    ]));
-  }
-  [hatImg, propImg] = await imgCache.get(k);
-}
-
-async function pickCareer(idx) {
+function pickCareer(idx) {
   career = store.careers()[idx];
   if (!career) return;
   sfx.pick();
-  hatImg = propImg = null;
-  loadCareerImages(career);
-  showStep('camera');
+  kidName = '';
+  resetFlip();
+  updateWho();
+  showStep('card');
   openName();
-  const ok = await startCamera();
-  if (ok && store.settings().faceTracking) {
-    tracker.start(video).then((loaded) => {
-      if (!loaded) toast('Chưa tải được bản bám khuôn mặt — dùng khung tròn cố định', 3500);
-    });
-  } else {
-    tracker.stop();
-  }
 }
 
 // ---------------- Tên bé ----------------
+function setGender(g) {
+  gender = g === 'girl' ? 'girl' : 'boy';
+  $$('.gender-chip', root).forEach((c) => c.classList.toggle('selected', c.dataset.gender === gender));
+}
 function openName() {
   const modal = $('[data-modal="name"]', root);
   const field = $('.name-field', root);
-  field.value = '';
-  $('.name-chips', root).innerHTML = store.kids()
-    .map((k) => `<button class="chip" data-name="${esc(k)}">${esc(k)}</button>`).join('');
+  field.value = kidName;
+  setGender(gender);
+  $('.name-chips', root).innerHTML = store.kidInfo()
+    .map((k) => `<button class="chip" data-name="${esc(k.name)}">${esc(k.name)}</button>`).join('');
   modal.hidden = false;
   setTimeout(() => field.focus(), 60);
 }
@@ -270,8 +239,12 @@ function closeName() {
 }
 function confirmName(name) {
   kidName = (name || '').trim();
+  // Tên có trong danh sách kèm giới tính → tự chọn hình bé trai/bé gái
+  const known = store.kidInfo().find((k) => store.normalize(k.name) === store.normalize(kidName));
+  if (known?.gender) setGender(known.gender);
   closeName();
   updateWho();
+  reveal();
 }
 function updateWho() {
   const who = $('.g1-who', root);
@@ -279,203 +252,150 @@ function updateWho() {
     <svg viewBox="0 0 24 24" class="ico"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>`;
 }
 
-// ---------------- Webcam ----------------
-async function startCamera() {
-  hideMsg();
-  if (stream) return true;
-  if (!navigator.mediaDevices?.getUserMedia) {
-    showMsg('Trình duyệt chưa cho dùng webcam ở chế độ này.<br>Hãy mở trang bằng <b>Live Server</b> (địa chỉ http://127.0.0.1:5500…), không mở file trực tiếp.');
-    return false;
-  }
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 960 }, facingMode: 'user' },
-      audio: false,
-    });
-    video.srcObject = stream;
-    await video.play();
-    return true;
-  } catch (err) {
-    const msg = {
-      NotAllowedError: 'Chưa cho phép dùng webcam.<br>Bấm biểu tượng 🎥 trên thanh địa chỉ → <b>Cho phép</b>, rồi chọn lại nghề.',
-      NotFoundError: 'Không tìm thấy webcam. Kiểm tra lại dây cắm hoặc webcam của laptop.',
-      NotReadableError: 'Webcam đang được ứng dụng khác dùng (Zoom, Meet…). Hãy tắt ứng dụng đó rồi thử lại.',
-    }[err.name] || `Không mở được webcam (${esc(err.name || err.message)}).`;
-    showMsg(msg);
-    return false;
-  }
-}
-function stopCamera() {
-  tracker.stop();
-  if (stream) stream.getTracks().forEach((t) => t.stop());
-  stream = null;
-  if (video) video.srcObject = null;
-}
-function showMsg(html) { const m = $('.cam-msg', root); m.innerHTML = html; m.hidden = false; }
-function hideMsg() { $('.cam-msg', root).hidden = true; }
-
-// ---------------- Vẽ khung hình ----------------
-function startLoop() {
-  stopLoop();
-  const guide = $('.cam-guide', root);
-  const loop = () => {
-    drawScene(ctx, true);
-    const msg = tracker.face(W, H) ? 'Mũ đang bám theo bé đấy! ✨' : 'Đưa mặt vào khung nhé!';
-    if (guide.textContent !== msg) guide.textContent = msg;
-    rafId = requestAnimationFrame(loop);
-  };
-  rafId = requestAnimationFrame(loop);
-}
-function stopLoop() { cancelAnimationFrame(rafId); rafId = 0; }
-
-function captionText() {
-  if (!career) return '';
-  return `Mai này ${kidName || 'bé'} là ${career.name}${career.emoji ? ' ' + career.emoji : ''}`;
+// ---------------- Lật thẻ ----------------
+function resetFlip() {
+  $('.flip', root).classList.remove('flipped');
+  $('[data-act="keep"]', root).disabled = true;
+  lastBlob = null;
 }
 
-function roundRect(c, x, y, w, h, r) {
-  c.beginPath();
-  c.moveTo(x + r, y);
-  c.arcTo(x + w, y, x + w, y + h, r);
-  c.arcTo(x + w, y + h, x, y + h, r);
-  c.arcTo(x, y + h, x, y, r);
-  c.arcTo(x, y, x + w, y, r);
-  c.closePath();
-}
-
-// Vị trí mũ: bám theo khuôn mặt (Nâng cao) hoặc theo ô tròn cố định (Đơn giản)
-function hatPlacement() {
-  const face = tracker.face(W, H);
-  if (face) {
-    // khung mặt của MediaPipe tính từ chân mày → cằm; đỉnh đầu cao hơn khoảng 0.35 lần bề rộng mặt
-    const w = face.w * 1.75;
-    const h = (w * 200) / 300;
-    return { x: face.cx - w / 2, y: face.top - face.w * 0.28 - h * 0.92, w, h, tracked: true };
-  }
-  const w = FACE.r * 2 * 1.12;
-  const h = (w * 200) / 300;
-  return { x: FACE.x - w / 2, y: FACE.y - FACE.r - h + FACE.r * 0.3, w, h, tracked: false };
-}
-
-function drawScene(c, live) {
-  c.save();
-  c.fillStyle = '#0b1a33';
-  c.fillRect(0, 0, W, H);
-
-  // Hình webcam: lấp đầy khung, lật như soi gương
-  if (video && video.readyState >= 2 && video.videoWidth) {
-    const vw = video.videoWidth, vh = video.videoHeight;
-    const scale = Math.max(W / vw, H / vh);
-    const dw = vw * scale, dh = vh * scale;
-    c.save();
-    c.translate(W, 0);
-    c.scale(-1, 1);
-    c.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
-    c.restore();
-  }
-
-  const hat = hatPlacement();
-  const tracked = hat.tracked;
-
-  // Làm tối nhẹ xung quanh để mặt bé nổi bật + chút ánh vàng ấm
-  const vx = tracked ? hat.x + hat.w / 2 : FACE.x;
-  const vy = tracked ? hat.y + hat.h + hat.w * 0.25 : FACE.y;
-  const g = c.createRadialGradient(vx, vy, FACE.r * 0.9, vx, vy, FACE.r * 2.8);
-  g.addColorStop(0, 'rgba(7,16,31,0)');
-  g.addColorStop(1, 'rgba(7,16,31,0.5)');
-  c.fillStyle = g;
-  c.fillRect(0, 0, W, H);
-  c.fillStyle = 'rgba(255, 190, 110, 0.05)';
-  c.fillRect(0, 0, W, H);
-
-  if (live && !tracked) {
-    c.save();
-    c.strokeStyle = 'rgba(251, 231, 181, 0.9)';
-    c.lineWidth = 6;
-    c.setLineDash([22, 16]);
-    c.beginPath();
-    c.arc(FACE.x, FACE.y, FACE.r, 0, Math.PI * 2);
-    c.stroke();
-    c.restore();
-  }
-
-  if (frameImg) c.drawImage(frameImg, 0, 0, W, H);
-  if (hatImg) c.drawImage(hatImg, hat.x, hat.y, hat.w, hat.h);
-  if (propImg) c.drawImage(propImg, 1190, 690, 310, 310);
-
-  // Dòng chữ
-  const text = captionText();
-  if (text) {
-    let size = 72;
-    c.font = `700 ${size}px "Dancing Script", ${'"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji"'}, cursive`;
-    let tw = c.measureText(text).width;
-    while (tw > 1240 && size > 40) {
-      size -= 4;
-      c.font = `700 ${size}px "Dancing Script", "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", cursive`;
-      tw = c.measureText(text).width;
-    }
-    const bw = Math.max(tw + 150, 640), bh = 150, bx = (W - bw) / 2, by = 1004;
-    roundRect(c, bx, by, bw, bh, 34);
-    c.fillStyle = 'rgba(11, 26, 51, 0.86)';
-    c.fill();
-    c.lineWidth = 4;
-    c.strokeStyle = '#f2c46d';
-    c.stroke();
-    c.textAlign = 'center';
-    c.textBaseline = 'middle';
-    c.save();
-    c.shadowColor = 'rgba(255, 190, 100, 0.65)';
-    c.shadowBlur = 22;
-    c.fillStyle = '#ffcf7a';
-    c.fillText(text, W / 2, by + 62);
-    c.restore();
-    c.font = '600 26px "Be Vietnam Pro", sans-serif';
-    c.fillStyle = 'rgba(251, 231, 181, 0.82)';
-    c.fillText(`Thôi nôi bé ${store.babyName()} · Giáng sinh ${new Date().getFullYear()}`, W / 2, by + 118);
-  }
-  c.restore();
-}
-
-// ---------------- Chụp ----------------
-async function shoot() {
-  if (busy) return;
-  if (!stream) { const ok = await startCamera(); if (!ok) return; }
+async function reveal() {
+  if (!career) return;
+  const seq = ++renderSeq;
   busy = true;
-  const bar = $('[data-step="camera"] .g1-bar', root);
-  $$('button', bar).forEach((b) => { b.disabled = true; });
-  const cd = $('.countdown', root);
-  for (const n of [3, 2, 1]) {
-    cd.textContent = n;
-    cd.classList.remove('pop'); void cd.offsetWidth; cd.classList.add('pop');
-    sfx.tick(n === 1);
-    await sleep(1000);
-  }
-  cd.textContent = '';
-  cd.classList.remove('pop');
-  sfx.shutter();
-  const glow = $('.cam-glow', root);
-  glow.classList.remove('on'); void glow.offsetWidth; glow.classList.add('on');
-
-  const off = document.createElement('canvas');
-  off.width = W; off.height = H;
-  drawScene(off.getContext('2d'), false);
-  lastBlob = await new Promise((r) => off.toBlob(r, 'image/jpeg', 0.92));
+  resetFlip();
+  const blob = await renderCard();
+  if (seq !== renderSeq) return;      // MC đã đổi tên/nghề trong lúc vẽ
+  lastBlob = blob;
   if (lastUrl) URL.revokeObjectURL(lastUrl);
-  lastUrl = URL.createObjectURL(lastBlob);
-  $('.review-img', root).src = lastUrl;
-
-  await sleep(350);
-  showStep('review');
-  $$('button', bar).forEach((b) => { b.disabled = false; });
+  lastUrl = URL.createObjectURL(blob);
+  const img = $('.card-img', root);
+  img.src = lastUrl;
+  await img.decode().catch(() => {});
+  await sleep(450);
+  if (seq !== renderSeq) return;
+  sfx.bloom();
+  $('.flip', root).classList.add('flipped');
+  await sleep(900);
+  if (seq !== renderSeq) return;
+  sfx.sparkle();
+  sparkles($('.flip-box', root));
+  $('[data-act="keep"]', root).disabled = false;
   busy = false;
 }
 
+function sparkles(box) {
+  const r = box.getBoundingClientRect();
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('i');
+    s.className = 'spark';
+    const a = Math.random() * Math.PI * 2;
+    const d = 120 + Math.random() * 220;
+    s.style.left = `${r.left + r.width * (0.2 + Math.random() * 0.6)}px`;
+    s.style.top = `${r.top + r.height * (0.25 + Math.random() * 0.5)}px`;
+    s.style.setProperty('--tx', `${Math.cos(a) * d}px`);
+    s.style.setProperty('--ty', `${Math.sin(a) * d}px`);
+    s.style.animationDelay = `${Math.random() * 0.25}s`;
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1600);
+  }
+}
+
+// ---------------- Vẽ thẻ 1600×1200 ----------------
+function fitFont(c, text, weight, family, size, maxW, min) {
+  c.font = `${weight} ${size}px ${family}`;
+  while (c.measureText(text).width > maxW && size > min) {
+    size -= 4;
+    c.font = `${weight} ${size}px ${family}`;
+  }
+  return size;
+}
+
+async function renderCard() {
+  const kid = await svgToImage(kidSVG(career.key, gender, 460, 540));
+  if (!frameImg) frameImg = await imageWithOverride('assets/props/frame.png', frameSVG());
+  await document.fonts.ready;
+
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+
+  // Nền xanh thông ấm + quầng sáng nến sau lưng bé
+  const bg = c.createRadialGradient(560, 640, 80, 700, 600, 1100);
+  bg.addColorStop(0, '#2c6447');
+  bg.addColorStop(0.55, '#1b4431');
+  bg.addColorStop(1, '#0f2a1e');
+  c.fillStyle = bg;
+  c.fillRect(0, 0, W, H);
+  const glow = c.createRadialGradient(520, 660, 40, 520, 660, 520);
+  glow.addColorStop(0, 'rgba(255, 207, 122, 0.42)');
+  glow.addColorStop(1, 'rgba(255, 207, 122, 0)');
+  c.fillStyle = glow;
+  c.fillRect(0, 0, W, H);
+  // Tuyết lấm tấm
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  c.fillStyle = 'rgba(255, 255, 255, 0.16)';
+  for (let i = 0; i < 70; i++) {
+    c.beginPath();
+    c.arc(80 + rnd() * 1440, 260 + rnd() * 880, 2 + rnd() * 4, 0, Math.PI * 2);
+    c.fill();
+  }
+
+  // Bé
+  const kh = 830, kw = (kh * 460) / 540;
+  c.drawImage(kid, 140, 1192 - kh, kw, kh);   // thân bé khuất dưới viền cho tự nhiên
+
+  // Chữ bên phải
+  const cx = 1150;
+  const emojiFont = '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji"';
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.font = '600 40px "Be Vietnam Pro", sans-serif';
+  c.fillStyle = '#fbe7b5';
+  c.fillText('MAI NÀY', cx, 430);
+
+  const name = kidName || 'bé yêu';
+  const fam = `"Dancing Script", ${emojiFont}, cursive`;
+  fitFont(c, name, 700, fam, 170, 740, 80);
+  c.save();
+  c.shadowColor = 'rgba(255, 190, 100, 0.7)';
+  c.shadowBlur = 30;
+  c.fillStyle = '#ffcf7a';
+  c.fillText(name, cx, 570);
+  c.restore();
+
+  const job = `là ${career.name}${career.emoji ? ' ' + career.emoji : ''}`;
+  fitFont(c, job, 700, fam, 104, 760, 56);
+  c.fillStyle = '#fdf3df';
+  c.fillText(job, cx, 730);
+
+  // Dải ruy băng đỏ + dòng kỷ niệm
+  const rw = 640, ry = 840;
+  c.fillStyle = '#b8323a';
+  c.beginPath();
+  c.moveTo(cx - rw / 2 - 30, ry); c.lineTo(cx + rw / 2 + 30, ry);
+  c.lineTo(cx + rw / 2 + 6, ry + 37); c.lineTo(cx + rw / 2 + 30, ry + 74);
+  c.lineTo(cx - rw / 2 - 30, ry + 74); c.lineTo(cx - rw / 2 - 6, ry + 37);
+  c.closePath();
+  c.fill();
+  c.strokeStyle = '#f2c46d';
+  c.lineWidth = 3;
+  c.stroke();
+  c.font = '600 30px "Be Vietnam Pro", sans-serif';
+  c.fillStyle = '#fdf3df';
+  c.fillText(`Thôi nôi bé ${store.babyName()} · Giáng sinh ${new Date().getFullYear()}`, cx, ry + 39);
+
+  if (frameImg) c.drawImage(frameImg, 0, 0, W, H);
+  return new Promise((r) => cv.toBlob(r, 'image/jpeg', 0.92));
+}
+
 async function keep() {
-  if (!lastBlob) return;
+  if (!lastBlob || busy) return;
   await addPhoto({ blob: lastBlob, name: kidName, career: career?.name || '', emoji: career?.emoji || '', ts: Date.now() });
   lastBlob = null;
   sfx.sparkle();
-  toast('Đã lưu ảnh vào album ✨');
+  toast('Đã lưu thẻ vào album ✨');
   showStep('pick');
   refreshCount();
 }
@@ -498,7 +418,7 @@ async function loadPhotos() {
 async function openAlbum() {
   showStep('album');
   await loadPhotos();
-  $('.album-sub', root).textContent = photos.length ? `${photos.length} ảnh đã chụp` : 'Chưa có ảnh nào — chụp tấm đầu tiên nhé!';
+  $('.album-sub', root).textContent = photos.length ? `${photos.length} thẻ ước mơ` : 'Chưa có thẻ nào, làm thẻ đầu tiên nhé!';
   $('[data-act="slideshow"]', root).disabled = !photos.length;
   $('[data-act="zip"]', root).disabled = !photos.length;
   $('.album-grid', root).innerHTML = photos.map((p, i) => `
@@ -507,8 +427,8 @@ async function openAlbum() {
       <figcaption>
         <span><b>${esc(p.name || 'Bé')}</b> · ${esc(p.career)} ${esc(p.emoji)}</span>
         <span class="album-tools">
-          <button class="icon-btn sm" data-act="dl-one" data-id="${p.id}" title="Tải ảnh"><svg viewBox="0 0 24 24" class="ico"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
-          <button class="icon-btn sm" data-act="del-one" data-id="${p.id}" title="Xoá ảnh"><svg viewBox="0 0 24 24" class="ico"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button>
+          <button class="icon-btn sm" data-act="dl-one" data-id="${p.id}" title="Tải thẻ"><svg viewBox="0 0 24 24" class="ico"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button>
+          <button class="icon-btn sm" data-act="del-one" data-id="${p.id}" title="Xoá thẻ"><svg viewBox="0 0 24 24" class="ico"><path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13"/></svg></button>
         </span>
       </figcaption>
     </figure>`).join('');
@@ -520,19 +440,19 @@ function downloadOne(id) {
 }
 
 async function removeOne(id) {
-  if (!confirm('Xoá ảnh này khỏi album?')) return;
+  if (!confirm('Xoá thẻ này khỏi album?')) return;
   await deletePhoto(id);
   openAlbum();
 }
 
 async function downloadAll() {
   if (!photos.length) return;
-  toast('Đang đóng gói ảnh…');
+  toast('Đang đóng gói thẻ…');
   const files = [];
   for (let i = 0; i < photos.length; i++) {
     files.push({ name: fileName(photos[i], i), data: new Uint8Array(await photos[i].blob.arrayBuffer()) });
   }
-  download(makeZip(files), `album-thoi-noi-${store.slug(store.babyName())}.zip`);
+  download(makeZip(files), `the-uoc-mo-${store.slug(store.babyName())}.zip`);
 }
 
 // ---------------- Trình chiếu ----------------

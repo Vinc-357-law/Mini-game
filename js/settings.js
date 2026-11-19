@@ -11,7 +11,7 @@ const FIELDS = [
   },
   {
     key: 'kids', label: 'Các bé dự tiệc (Game 1 & 2)',
-    hint: 'Mỗi dòng một tên. Dùng để gợi ý tên khi chụp ảnh và phát quà ở cây thông.',
+    hint: 'Mỗi dòng một tên. Có thể ghi thêm giới tính: <code>Bin | trai</code>, <code>Na | gái</code> để thẻ ước mơ tự chọn hình bé trai/bé gái.',
     count: () => `${store.kids().length} bé`,
   },
   {
@@ -53,13 +53,6 @@ function render() {
           <div class="field-top"><label for="f-babyName">Tên em bé thôi nôi</label></div>
           <input type="text" id="f-babyName" class="name-input" data-key="babyName" value="${esc(s.babyName)}" maxlength="30" autocomplete="off">
         </div>
-        <div class="field wide">
-          <label class="toggle-row">
-            <input type="checkbox" id="f-faceTracking" ${s.faceTracking ? 'checked' : ''}>
-            <span><b>Photobooth nâng cao:</b> mũ tự bám theo đầu bé (nhận diện khuôn mặt bằng MediaPipe)</span>
-          </label>
-          <p class="hint">Tắt = khung tròn cố định, chạy nhẹ và ổn định nhất. Bật = vui hơn nhưng cần máy đủ khoẻ; nếu không nhận ra mặt, web tự quay về khung tròn.</p>
-        </div>
         ${FIELDS.map((f) => `
           <div class="field">
             <div class="field-top"><label for="f-${f.key}">${f.label}</label><span class="count" data-count="${f.key}"></span></div>
@@ -79,7 +72,7 @@ function render() {
       <div class="danger-zone">
         <h3>Làm lại từ đầu</h3>
         <div class="settings-actions" style="margin-top:0">
-          <button class="btn btn-danger btn-sm" data-reset="photos">Xoá toàn bộ ảnh Photobooth</button>
+          <button class="btn btn-danger btn-sm" data-reset="photos">Xoá toàn bộ thẻ ước mơ</button>
           <button class="btn btn-danger btn-sm" data-reset="tree">Làm lại cây thông</button>
           <button class="btn btn-danger btn-sm" data-reset="oven">Làm lại bốc thăm</button>
           <button class="btn btn-danger btn-sm" data-reset="sample">Khôi phục dữ liệu mẫu</button>
@@ -103,11 +96,6 @@ function render() {
     }, 350);
   });
 
-  wrap.querySelector('#f-faceTracking').addEventListener('change', (e) => {
-    store.update((st) => { st.settings.faceTracking = e.target.checked; });
-    state.textContent = 'Đã lưu ✓';
-  });
-
   wrap.querySelector('#btnExport').addEventListener('click', () => {
     const blob = new Blob([store.exportJSON()], { type: 'application/json' });
     const d = new Date();
@@ -129,7 +117,7 @@ function render() {
   wrap.querySelectorAll('[data-reset]').forEach((b) => b.addEventListener('click', async () => {
     const kind = b.dataset.reset;
     const msg = {
-      photos: 'Xoá toàn bộ ảnh đã chụp trong album? Không thể hoàn tác.',
+      photos: 'Xoá toàn bộ thẻ ước mơ trong album? Không thể hoàn tác.',
       tree: 'Gỡ hết đồ trang trí và quà ở cây thông, làm lại từ đầu?',
       oven: 'Xoá kết quả bốc thăm (bảng "Đã trúng") để bốc lại từ đầu?',
       sample: 'Thay toàn bộ danh sách hiện tại bằng dữ liệu mẫu?',

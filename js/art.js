@@ -1,5 +1,5 @@
 // Thư viện hình minh họa SVG (vẽ tay bằng code) — phong cách phẳng, viền nâu ấm.
-// Có thể thay bằng PNG riêng: xem README (assets/props/<key>-hat.png ...).
+// Viền thẻ có thể thay bằng PNG riêng: assets/props/frame.png (xem README).
 
 const O = '#3b2414';            // màu viền
 const NS = 'http://www.w3.org/2000/svg';
@@ -242,22 +242,105 @@ function shade(hex, amt) {
 export const hatSVG = (key, w = 300, h = 200) => svg('0 0 300 200', w, h, HATS[key] || HATS.generic);
 export const propSVG = (key, w = 200, h = 200) => svg('0 0 200 200', w, h, PROPS[key] || PROPS.generic);
 
-// Nhân vật bé đội mũ — dùng cho thẻ chọn nghề
-const FACE = `
-  <circle cx="150" cy="222" r="100" fill="#f8d6bb" stroke="${O}" stroke-width="5"/>
-  <ellipse cx="116" cy="216" rx="9" ry="12" fill="${O}"/><ellipse cx="184" cy="216" rx="9" ry="12" fill="${O}"/>
-  <circle cx="119" cy="211" r="3.2" fill="#fff"/><circle cx="187" cy="211" r="3.2" fill="#fff"/>
-  <ellipse cx="96" cy="250" rx="17" ry="10" fill="#f29a9a" opacity=".6"/><ellipse cx="204" cy="250" rx="17" ry="10" fill="#f29a9a" opacity=".6"/>
-  <path d="M128 258 Q150 280 172 258" stroke="${O}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+// =========================================================
+// NHÂN VẬT BÉ MẶC ĐỒ NGHỀ — viewBox 0 0 460 540
+// gender: 'boy' | 'girl'
+// =========================================================
+const SKIN = '#f8d6bb', HAIR = '#4a2c1a';
 
-export function careerCardSVG(key) {
+// Áo theo nghề: [màu áo, màu tay áo, chi tiết vẽ thêm trên thân]
+const OUTFITS = {
+  doctor: ['#f7f9fc', '#e6ebf2', `
+    <path d="M172 322 L200 392 L228 322 Z" fill="#9fd0e8" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M160 324 L200 410 M240 324 L200 410" stroke="${O}" stroke-width="5" stroke-linecap="round"/>
+    <rect x="234" y="420" width="44" height="34" rx="6" fill="#fff" stroke="${O}" stroke-width="4"/>
+    <rect x="250" y="426" width="12" height="22" rx="2" fill="#d6423a"/><rect x="245" y="431" width="22" height="12" rx="2" fill="#d6423a"/>`],
+  astronaut: ['#eef1f6', '#dfe4ec', `
+    <ellipse cx="200" cy="328" rx="62" ry="16" fill="#c9d0dc" stroke="${O}" stroke-width="4"/>
+    <rect x="160" y="388" width="80" height="54" rx="10" fill="#26375f" stroke="${O}" stroke-width="4"/>
+    <circle cx="180" cy="408" r="8" fill="#d6423a"/><circle cx="202" cy="408" r="8" fill="#ffd25e"/><circle cx="224" cy="408" r="8" fill="#4caf6e"/>
+    <rect x="172" y="424" width="56" height="8" rx="4" fill="#9fb0cc"/>`],
+  chef: ['#fffdf8', '#f1ece0', `
+    <path d="M166 322 L200 362 L234 322 Z" fill="#d6423a" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M200 362 L188 392 L212 392 Z" fill="#d6423a" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+    ${[400, 436, 472].map((y) => `<circle cx="178" cy="${y}" r="6" fill="#c9b99a"/><circle cx="222" cy="${y}" r="6" fill="#c9b99a"/>`).join('')}`],
+  firefighter: ['#d6423a', '#c43a33', `
+    <path d="M100 436 H300 M104 470 H296" stroke="#ffd25e" stroke-width="12"/>
+    <path d="M100 436 H300 M104 470 H296" stroke="#fff3c4" stroke-width="3"/>
+    <path d="M200 330 V500" stroke="#3b2414" stroke-width="5"/>
+    <path d="M170 326 L200 346 L230 326" stroke="#3b2414" stroke-width="5" fill="none" stroke-linejoin="round"/>`],
+  painter: ['#3f8f7a', '#357a68', `
+    <path d="M200 340 L168 322 Q160 350 176 360 Z M200 340 L232 322 Q240 350 224 360 Z" fill="#d6423a" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <circle cx="200" cy="342" r="10" fill="#d6423a" stroke="${O}" stroke-width="4"/>
+    <circle cx="150" cy="420" r="11" fill="#ffd25e"/><circle cx="246" cy="452" r="9" fill="#fdf6e7"/><circle cx="178" cy="476" r="8" fill="#d6423a"/><circle cx="262" cy="404" r="7" fill="#f2c46d"/>`],
+  singer: ['#8a5cd6', '#7a4ec4', `
+    <path d="M200 338 L170 322 L170 356 Z M200 338 L230 322 L230 356 Z" fill="#f2c46d" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <circle cx="200" cy="339" r="8" fill="#f2c46d" stroke="${O}" stroke-width="4"/>
+    ${sparkle(150, 420, 0.9)}${sparkle(252, 450, 1.1)}${sparkle(196, 488, 0.7, '#fbe7b5')}`],
+  police: ['#26375f', '#1f2e52', `
+    <path d="M172 322 L200 358 L228 322 Z" fill="#dfe6f3" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M200 358 L190 372 L200 452 L210 372 Z" fill="#141c30" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M248 392 L270 400 L268 424 Q264 438 248 444 Q232 438 228 424 L226 400 Z" fill="#f2c46d" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+    <path d="${starPath(248, 418, 10, 4.5)}" fill="#26375f"/>`],
+  teacher: ['#2f7d5b', '#286b4e', `
+    <path d="M200 334 L164 322 L172 354 Z M200 334 L236 322 L228 354 Z" fill="#fdf6e7" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M200 340 V500" stroke="#1e5a40" stroke-width="5"/>
+    ${[392, 428, 464].map((y) => `<circle cx="214" cy="${y}" r="6" fill="#fdf6e7"/>`).join('')}`],
+  generic: ['#c8473f', '#b63c35', `
+    <path d="M104 420 H296" stroke="#fdf6e7" stroke-width="20"/>
+    <path d="M104 420 l12 -8 l12 8 l12 -8 l12 8 l12 -8 l12 8 l12 -8 l12 8 l12 -8 l12 8 l12 -8 l12 8 l12 -8 l12 8 l12 -8 l12 8" stroke="#2f7d5b" stroke-width="5" fill="none" stroke-linejoin="round"/>
+    <path d="M168 324 Q200 344 232 324" stroke="#fdf6e7" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <circle cx="150" cy="466" r="6" fill="#fdf6e7"/><circle cx="200" cy="474" r="6" fill="#fdf6e7"/><circle cx="250" cy="466" r="6" fill="#fdf6e7"/>`],
+};
+
+function kidBody(key, gender) {
+  const [coat, sleeve, detail] = OUTFITS[key] || OUTFITS.generic;
+  const girl = gender === 'girl';
+  const hairBack = girl ? `
+    <path d="M102 210 Q84 300 116 336 L136 312 Q114 270 118 214 Z" fill="${HAIR}" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M298 210 Q316 300 284 336 L264 312 Q286 270 282 214 Z" fill="${HAIR}" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>` : '';
+  const pigtails = girl ? [[78, 262, 1], [322, 262, -1]].map(([x, y, f]) => `
+    <circle cx="${x}" cy="${y}" r="30" fill="${HAIR}" stroke="${O}" stroke-width="4"/>
+    <g transform="translate(${x + f * 18} ${y - 26})">
+      <path d="M0 0 L-20 -14 L-20 14 Z M0 0 L20 -14 L20 14 Z" fill="#d6423a" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+      <circle r="6" fill="#d6423a" stroke="${O}" stroke-width="3.5"/>
+    </g>`).join('') : '';
+  const fringe = girl
+    ? `M102 222 Q92 116 200 108 Q308 116 298 222 Q286 166 240 158 Q214 176 200 160 Q184 178 156 162 Q116 170 102 222Z`
+    : `M102 222 Q92 118 200 108 Q308 118 298 222 Q290 180 262 168 Q240 186 210 172 Q182 190 154 172 Q124 182 102 222Z`;
+  return `
+    ${hairBack}
+    <path d="M92 500 L96 414 Q100 344 160 322 L240 322 Q300 344 304 414 L308 500 Z" fill="${coat}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+    ${detail}
+    <path d="M112 352 Q84 400 90 452" stroke="${O}" stroke-width="46" fill="none" stroke-linecap="round"/>
+    <path d="M112 352 Q84 400 90 452" stroke="${sleeve}" stroke-width="37" fill="none" stroke-linecap="round"/>
+    <circle cx="90" cy="462" r="20" fill="${SKIN}" stroke="${O}" stroke-width="4.5"/>
+    <path d="M288 352 Q322 370 334 404" stroke="${O}" stroke-width="46" fill="none" stroke-linecap="round"/>
+    <path d="M288 352 Q322 370 334 404" stroke="${sleeve}" stroke-width="37" fill="none" stroke-linecap="round"/>
+    <circle cx="100" cy="230" r="17" fill="${SKIN}" stroke="${O}" stroke-width="4.5"/>
+    <circle cx="300" cy="230" r="17" fill="${SKIN}" stroke="${O}" stroke-width="4.5"/>
+    <circle cx="200" cy="222" r="100" fill="${SKIN}" stroke="${O}" stroke-width="5"/>
+    <path d="${fringe}" fill="${HAIR}" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+    ${pigtails}
+    <ellipse cx="166" cy="222" rx="9" ry="12" fill="${O}"/><ellipse cx="234" cy="222" rx="9" ry="12" fill="${O}"/>
+    <circle cx="169" cy="217" r="3.2" fill="#fff"/><circle cx="237" cy="217" r="3.2" fill="#fff"/>
+    <ellipse cx="146" cy="254" rx="17" ry="10" fill="#f29a9a" opacity=".6"/><ellipse cx="254" cy="254" rx="17" ry="10" fill="#f29a9a" opacity=".6"/>
+    <path d="M178 262 Q200 284 222 262" stroke="${O}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+}
+
+export function kidSVG(key, gender = 'boy', w = '100%', h = '100%') {
   const hat = HATS[key] || HATS.generic;
   const prop = PROPS[key] || PROPS.generic;
-  return svg('0 0 320 340', '100%', '100%', `
-    ${FACE}
-    <svg x="28" y="38" width="244" height="163" viewBox="0 0 300 200">${hat}</svg>
-    <svg x="208" y="226" width="112" height="112" viewBox="0 0 200 200">${prop}</svg>`);
+  return svg('0 0 460 540', w, h, `<g transform="translate(0 40)">
+    ${kidBody(key, gender)}
+    <svg x="75" y="-8" width="250" height="167" viewBox="0 0 300 200">${hat}</svg>
+    <svg x="292" y="296" width="150" height="150" viewBox="0 0 200 200">${prop}</svg>
+    <circle cx="338" cy="410" r="20" fill="${SKIN}" stroke="${O}" stroke-width="4.5"/>
+  </g>`);
 }
+
+// Thẻ chọn nghề: bé trai/bé gái xen kẽ cho sinh động
+export const careerCardSVG = (key, i = 0) => kidSVG(key, i % 2 ? 'girl' : 'boy');
 
 // =========================================================
 // ĐỒ TRANG TRÍ CÂY THÔNG — viewBox 0 0 100 110, móc treo ở trên
@@ -318,7 +401,7 @@ export const ornamentSVG = (type) => svg('0 0 100 110', '100%', '100%', ORN[type
 
 const GIFT_COLORS = [
   ['#d6423a', '#f2c46d'], ['#f2c46d', '#d6423a'], ['#2f7d5b', '#fbe7b5'], ['#fdf6e7', '#d6423a'],
-  ['#3f6fb5', '#fbe7b5'], ['#b8334a', '#fdf6e7'], ['#e9a23b', '#2f7d5b'],
+  ['#1f5a43', '#f2c46d'], ['#b8334a', '#fdf6e7'], ['#e9a23b', '#2f7d5b'],
 ];
 export function giftSVG(i = 0) {
   const [box, ribbon] = GIFT_COLORS[i % GIFT_COLORS.length];
@@ -410,17 +493,20 @@ export function gingerSVG(w = '100%', h = '100%') {
 // =========================================================
 export function cardArt(name) {
   if (name === 'card-photobooth') {
-    return svg('0 0 320 240', '100%', '100%', `
-      <rect x="54" y="92" width="212" height="128" rx="22" fill="#2a4677" stroke="${O}" stroke-width="5"/>
-      <rect x="54" y="120" width="212" height="18" fill="#1b335f"/>
-      <rect x="196" y="76" width="50" height="22" rx="6" fill="#2a4677" stroke="${O}" stroke-width="5"/>
-      <circle cx="160" cy="158" r="50" fill="#fdf6e7" stroke="${O}" stroke-width="5"/>
-      <circle cx="160" cy="158" r="36" fill="#12264a" stroke="${O}" stroke-width="4"/>
-      <circle cx="160" cy="158" r="20" fill="#3f6fb5"/>
-      <circle cx="150" cy="148" r="7" fill="#fff" opacity=".85"/>
-      <circle cx="232" cy="122" r="8" fill="#ffcf7a"/>
-      <svg x="86" y="-8" width="120" height="80" viewBox="0 0 300 200">${HATS.chef}</svg>
-      ${sparkle(40, 70, 1.2)}${sparkle(282, 64, 0.9, '#fbe7b5')}${sparkle(286, 200, 0.7)}`);
+    const back = `<g transform="rotate(-9 110 130)">
+        <rect x="46" y="36" width="128" height="176" rx="14" fill="#9e2630" stroke="${O}" stroke-width="5"/>
+        <rect x="56" y="46" width="108" height="156" rx="9" fill="none" stroke="#f2c46d" stroke-width="3"/>
+        <path d="${starPath(110, 124, 30, 13)}" fill="#f2c46d" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>
+      </g>`;
+    const front = `<g transform="rotate(7 200 130)">
+        <rect x="132" y="28" width="140" height="190" rx="14" fill="#fdf3df" stroke="${O}" stroke-width="5"/>
+        <rect x="142" y="38" width="120" height="170" rx="9" fill="#1d4532" stroke="#f2c46d" stroke-width="3"/>
+        <circle cx="202" cy="118" r="52" fill="#ffcf7a" opacity=".22"/>
+        <svg x="146" y="52" width="116" height="136" viewBox="0 0 460 540">${kidSVG('chef', 'girl').replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
+        <rect x="158" y="184" width="88" height="14" rx="7" fill="#f2c46d" opacity=".85"/>
+      </g>`;
+    return svg('0 0 320 240', '100%', '100%', `${back}${front}
+      ${sparkle(34, 40, 1.2)}${sparkle(292, 46, 0.9, '#fbe7b5')}${sparkle(296, 206, 0.7)}`);
   }
   if (name === 'card-tree') {
     return svg('0 0 320 240', '100%', '100%', `
@@ -439,13 +525,13 @@ export function cardArt(name) {
   }
   // card-oven
   return svg('0 0 320 240', '100%', '100%', `
-    <rect x="40" y="40" width="200" height="180" rx="20" fill="#e9dcc3" stroke="${O}" stroke-width="5"/>
-    <rect x="40" y="40" width="200" height="40" rx="20" fill="#d8c6a4" stroke="${O}" stroke-width="5"/>
+    <rect x="40" y="40" width="200" height="180" rx="20" fill="#4f7a52" stroke="${O}" stroke-width="5"/>
+    <rect x="40" y="40" width="200" height="40" rx="20" fill="#3d6342" stroke="${O}" stroke-width="5"/>
     <circle cx="80" cy="60" r="9" fill="#3b2414"/><circle cx="110" cy="60" r="9" fill="#3b2414"/>
-    <rect x="160" y="52" width="56" height="16" rx="5" fill="#12264a"/>
+    <rect x="160" y="52" width="56" height="16" rx="5" fill="#10291f"/>
     <rect x="62" y="98" width="156" height="100" rx="14" fill="#ff9a4d" stroke="${O}" stroke-width="5"/>
     <rect x="70" y="106" width="140" height="84" rx="10" fill="#ffc27a" opacity=".55"/>
-    <rect x="96" y="88" width="88" height="10" rx="5" fill="#b9a27c" stroke="${O}" stroke-width="3"/>
+    <rect x="96" y="88" width="88" height="10" rx="5" fill="#d9a441" stroke="${O}" stroke-width="3"/>
     <svg x="186" y="96" width="120" height="144" viewBox="0 0 200 240">${gingerSVG().replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
     ${sparkle(282, 70, 1.1)}${sparkle(28, 30, 0.8, '#fbe7b5')}`);
 }
@@ -516,7 +602,7 @@ export function frameSVG() {
     .map(([x, y, s]) => flake(x, y, s)).join('');
   const mask = 'M0 0H1600V1200H0Z M44 14 H1556 A30 30 0 0 1 1586 44 V1156 A30 30 0 0 1 1556 1186 H44 A30 30 0 0 1 14 1156 V44 A30 30 0 0 1 44 14Z';
   return svg('0 0 1600 1200', 1600, 1200, `
-    <path d="${mask}" fill="#0b1a33" fill-rule="evenodd"/>
+    <path d="${mask}" fill="#7a1d26" fill-rule="evenodd"/>
     <rect x="14" y="14" width="1572" height="1172" rx="30" fill="none" stroke="#f2c46d" stroke-width="8"/>
     <rect x="32" y="32" width="1536" height="1136" rx="20" fill="none" stroke="#fbe7b5" stroke-width="2" opacity=".75"/>
     ${flakes}
@@ -538,8 +624,10 @@ export function loadImage(src) {
     img.src = src;
   });
 }
-// Ưu tiên PNG người dùng tự thêm, không có thì dùng SVG
+// Ưu tiên PNG người dùng tự thêm, không có thì dùng SVG.
+// Mở bằng file:// thì bỏ qua PNG (trình duyệt sẽ chặn lưu ảnh có hình từ file).
 export async function imageWithOverride(pngPath, svgString) {
+  if (location.protocol === 'file:') return svgToImage(svgString);
   try { return await loadImage(pngPath); }
   catch { return svgToImage(svgString); }
 }

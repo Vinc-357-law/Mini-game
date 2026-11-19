@@ -46,7 +46,7 @@
             <span class="card-num">1</span>
             <div class="card-art" data-art="card-photobooth"></div>
             <h2>Con của tương lai</h2>
-            <p>Photobooth chọn nghề, chụp ảnh lưu niệm</p>
+            <p>Chọn nghề, lật thẻ ước mơ của bé</p>
           </a>
           <a class="game-card" href="#tree" data-key="2">
             <span class="card-num">2</span>
@@ -78,20 +78,8 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- Nếu lỡ mở bằng cách nhấp đúp index.html: trình duyệt chặn JS module → hiện hướng dẫn -->
-  <div class="file-warning" id="fileWarning" hidden>
-    <div class="modal-card">
-      <h3>Cần mở web đúng cách</h3>
-      <p class="modal-sub">Trang đang được mở trực tiếp từ file nên trình duyệt chặn game và webcam.</p>
-      <ol>
-        <li>Mở thư mục dự án, nhấp đúp <b>Mo-web.bat</b> → web tự mở ở <b>http://localhost:5500</b>.</li>
-        <li>Hoặc trong VS Code: chuột phải <b>index.html</b> → <b>Open with Live Server</b>.</li>
-      </ol>
-    </div>
-  </div>
-  <script>
-    if (location.protocol === 'file:') document.getElementById('fileWarning').hidden = false;
-  </script>
-  <script type="module" src="js/app.js"></script>
+  <!-- js/app.bundle.js được gộp từ các file trong js/ bằng: node tools/build.mjs
+       (gộp thành 1 file thường để nhấp đúp index.html là chạy, không cần server) -->
+  <script src="js/app.bundle.js"></script>
 </body>
 </html>

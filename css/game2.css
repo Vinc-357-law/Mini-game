@@ -1,13 +1,23 @@
 /* =========================================================
    Game 2 — Cùng trang trí cây thông
    ========================================================= */
+/* Phòng khách: tường đỏ rượu có sọc mờ + sàn gỗ — để cây thông xanh nổi bật */
+#screen-tree {
+  background:
+    radial-gradient(ellipse 42% 55% at 50% 48%, rgba(255, 200, 120, .20), transparent 72%),
+    linear-gradient(180deg, transparent 0 77%, #3b2414 77% calc(77% + 4px), transparent calc(77% + 4px)),
+    repeating-linear-gradient(90deg, transparent 0 118px, rgba(0,0,0,.18) 118px 121px) bottom / 100% 23% no-repeat,
+    linear-gradient(180deg, #7a4a2a, #5a3620 40%, #3f2414) bottom / 100% 23% no-repeat,
+    repeating-linear-gradient(90deg, rgba(255, 220, 180, .04) 0 26px, transparent 26px 52px),
+    linear-gradient(180deg, #4a1219 0%, #6a1c26 45%, #5c1822 77%);
+}
 .g2 { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 10px; position: relative; }
 .g2::before {
   content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(ellipse 50% 60% at 50% 55%, rgba(255, 200, 110, .0), rgba(3, 8, 18, 0));
+  background: radial-gradient(ellipse 50% 60% at 50% 55%, rgba(255, 200, 110, 0), rgba(20, 6, 8, 0));
   transition: background 2s ease;
 }
-.g2.lit::before { background: radial-gradient(ellipse 45% 60% at 50% 52%, rgba(255, 200, 110, .14), rgba(6, 14, 34, .5)); }
+.g2.lit::before { background: radial-gradient(ellipse 45% 60% at 50% 52%, rgba(255, 200, 110, .16), rgba(20, 6, 8, .5)); }
 .g2-top .screen-sub { transition: opacity .8s; }
 .g2.lit .g2-top .screen-sub { opacity: 0; }
 
@@ -119,7 +129,7 @@
 .g2-tray {
   flex: 1; display: flex; justify-content: center; gap: clamp(6px, 1vw, 16px); padding: 10px 18px;
   border-radius: 24px; max-width: 980px; margin: 0 auto;
-  background: linear-gradient(180deg, rgba(27, 51, 95, .75), rgba(11, 26, 51, .85));
+  background: linear-gradient(180deg, rgba(30, 75, 54, .92), rgba(15, 40, 28, .95));
   border: 1px solid var(--line); box-shadow: var(--shadow);
   transition: opacity .8s, transform .8s;
 }

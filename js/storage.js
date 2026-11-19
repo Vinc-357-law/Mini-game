@@ -1,5 +1,5 @@
 // Lưu & đọc dữ liệu trong localStorage (cài đặt + tiến độ các game).
-// Ảnh chụp lưu riêng trong IndexedDB (xem db.js) vì dung lượng lớn.
+// Thẻ ước mơ (ảnh) lưu riêng trong IndexedDB (xem db.js) vì dung lượng lớn.
 
 const KEY = 'thoinoi-xmas.v1';
 
@@ -16,7 +16,10 @@ export const SAMPLE = {
     'Bác sĩ | 🩺', 'Phi hành gia | 🚀', 'Đầu bếp | 🍳', 'Lính cứu hỏa | 🚒',
     'Họa sĩ | 🎨', 'Ca sĩ | 🎤', 'Cảnh sát | 👮', 'Giáo viên | 📚',
   ].join('\n'),
-  kids: ['Bin', 'Bống', 'Cà Rốt', 'Su Su', 'Mít', 'Gạo', 'Tôm', 'Nấm', 'Bơ', 'Kem', 'Sóc', 'Na Na'].join('\n'),
+  kids: [
+    'Bin | trai', 'Bống | gái', 'Cà Rốt | trai', 'Su Su | gái', 'Mít | trai', 'Gạo | gái',
+    'Tôm | trai', 'Nấm | gái', 'Bơ | trai', 'Kem | gái', 'Sóc | trai', 'Na Na | gái',
+  ].join('\n'),
   guests: SAMPLE_GUESTS.join('\n'),
   prizes: [
     'Giải Khuyến khích | 1 phần quà nhỏ | 3',
@@ -24,7 +27,6 @@ export const SAMPLE = {
     'Giải Nhì | 1 hộp quà lớn | 1',
     'Giải Nhất | 1 phần quà đặc biệt | 1',
   ].join('\n'),
-  faceTracking: false,
 };
 
 function freshState() {
@@ -128,14 +130,22 @@ export function careers() {
   });
 }
 
-export function kids() {
+// Mỗi dòng: "Tên bé" hoặc "Tên bé | trai/gái"
+export function kidInfo() {
   const seen = new Set();
-  return lines(state.settings.kids).filter((n) => {
-    const k = normalize(n);
-    if (seen.has(k)) return false;
-    seen.add(k); return true;
+  const out = [];
+  lines(state.settings.kids).forEach((l) => {
+    const [name, g = ''] = parts(l);
+    const k = normalize(name);
+    if (!name || seen.has(k)) return;
+    seen.add(k);
+    const gn = normalize(g);
+    const gender = /^(gai|nu|girl|g)$/.test(gn) ? 'girl' : /^(trai|nam|boy|b)$/.test(gn) ? 'boy' : '';
+    out.push({ name, gender });
   });
+  return out;
 }
+export const kids = () => kidInfo().map((k) => k.name);
 
 export function guests() {
   const used = new Map();
