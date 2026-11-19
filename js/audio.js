@@ -92,6 +92,13 @@ export const sfx = {
     ['C5', 'E5', 'G5', 'C6', 'E6', 'G6', 'C7'].forEach((n, i) =>
       tone(sfxGain, freqOf(n), t + i * 0.13, { dur: 2.4, vol: 0.13 }));
   },
+  jingle() {
+    // chuông xe tuần lộc "leng keng" nhỏ, vui tai
+    if (!ensure()) return;
+    const t = ctx.currentTime;
+    [0, 0.06, 0.12, 0.2, 0.27].forEach((d, i) => tone(sfxGain, 2350 + ((i * 523) % 900), t + d, { dur: 0.5, vol: 0.055 }));
+    tone(sfxGain, freqOf('G6'), t + 0.32, { dur: 1.2, vol: 0.085 });
+  },
   bake() {
     // tiếng "rè rè" rất nhỏ khi lò nóng: một hợp âm trầm ấm
     if (!ensure()) return;

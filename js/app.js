@@ -4,13 +4,14 @@ import * as audio from './audio.js';
 import { startSnow } from './snow.js';
 import { cardArt } from './art.js';
 import { $, $$ } from './ui.js';
+import * as homeScreen from './home.js';
 import * as settingsScreen from './settings.js';
 import * as game1 from './game1.js';
 import * as game2 from './game2.js';
 import * as game3 from './game3.js';
 
 const SCREENS = {
-  home: { el: '#screen-home' },
+  home: { el: '#screen-home', mod: homeScreen },
   settings: { el: '#screen-settings', mod: settingsScreen },
   photobooth: { el: '#screen-photobooth', mod: game1 },
   tree: { el: '#screen-tree', mod: game2 },
@@ -19,36 +20,6 @@ const SCREENS = {
 
 let current = null;
 const inited = new Set();
-
-function bindHome() {
-  const name = store.babyName();
-  $$('[data-bind="babyName"]').forEach((n) => { n.textContent = name; });
-  // lớp viền trắng phía sau tên bé (kiểu chữ sticker) lấy chữ từ data-text
-  $$('.baby-name').forEach((n) => { n.dataset.text = name; });
-  document.title = `Thôi nôi ${store.babyPhrase()} · Mini game Giáng sinh`;
-  fitHome();
-}
-
-// Trang chính luôn vừa đúng một màn hình (máy chiếu không cuộn được):
-// tên bé dài → thu nhỏ chữ cho vừa bề ngang; cửa sổ thấp (laptop) → thu nhỏ cả khối giữa.
-function fitHome() {
-  const screen = $('#screen-home');
-  const home = $('.home', screen);
-  if (!home || !screen.classList.contains('active')) return;
-  const name = $('.baby-name', home);
-  home.style.zoom = '';
-  name.style.removeProperty('--name-k');
-  const maxW = home.clientWidth;
-  if (name.offsetWidth > maxW) name.style.setProperty('--name-k', (maxW / name.offsetWidth).toFixed(3));
-  if (matchMedia('(max-width: 900px)').matches) return;          // điện thoại: cho cuộn dọc
-  const cs = getComputedStyle(screen);
-  const avail = screen.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  const need = home.offsetHeight + 16;                             // + chỗ cho băng dính, bóng đổ
-  if (need > avail) home.style.zoom = Math.max(0.55, avail / need).toFixed(3);
-}
-let fitRaf = 0;
-window.addEventListener('resize', () => { cancelAnimationFrame(fitRaf); fitRaf = requestAnimationFrame(fitHome); });
-document.fonts?.ready.then(fitHome);
 
 function go(name) {
   if (!SCREENS[name]) name = 'home';
@@ -63,7 +34,6 @@ function go(name) {
   section.classList.add('active');
   current = name;
   $('#btnBack').hidden = name === 'home';
-  if (name === 'home') bindHome();
   if (scr.mod?.enter) scr.mod.enter();
 }
 
@@ -141,6 +111,6 @@ window.addEventListener('keydown', (e) => {
 // ---------- Khởi động ----------
 $$('[data-art]').forEach((n) => { n.innerHTML = cardArt(n.dataset.art); });
 startSnow($('#snow'));
-store.onChange(() => { if (current === 'home') bindHome(); });
+store.onChange(() => { if (current === 'home') homeScreen.refresh(); });
 window.addEventListener('hashchange', route);
 route();

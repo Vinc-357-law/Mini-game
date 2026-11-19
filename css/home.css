@@ -8,9 +8,62 @@
 /* ---------- Trang trí: con vật ló ra ở mép + sticker bay lơ lửng ---------- */
 .home-deco { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .home-deco [data-art] svg { display: block; width: 100%; height: 100%; }
-.mascot svg, .fl svg { filter: url(#sticker) drop-shadow(0 7px 9px rgba(0, 0, 0, .32)); }
+.mascot svg, .fl svg, .hang-orn svg, .swag svg, .gift-stack svg, .sleigh svg {
+  filter: url(#sticker) drop-shadow(0 7px 9px rgba(0, 0, 0, .32));
+}
 
-.mascot { position: absolute; will-change: transform; }
+/* ---------- Bầu trời: xe tuần lộc bay ngang (~42 giây một lần), bông tuyết to rơi chậm ---------- */
+.sleigh {
+  position: absolute; left: 0; top: 0; width: clamp(150px, 15vw, 270px); aspect-ratio: 380 / 150;
+  animation: sleighFly 42s linear 4s infinite both; will-change: transform;
+}
+.sleigh-bob { width: 100%; height: 100%; animation: sleighBob 1.7s ease-in-out infinite alternate; }
+/* bay vòng cung từ phải sang trái: lộ rõ ở 2 bên, lướt sau tên bé ở giữa */
+@keyframes sleighFly {
+  0% { translate: 104vw 27vh; }
+  8% { translate: 70vw 20vh; }
+  16% { translate: 36vw 15.5vh; }
+  24% { translate: 2vw 17vh; }
+  32% { translate: -32vw 23vh; }
+  100% { translate: -32vw 23vh; }
+}
+@keyframes sleighBob { from { translate: 0 -5px; rotate: -2deg; } to { translate: 0 5px; rotate: 1.5deg; } }
+
+.flake-fall {
+  position: absolute; top: -7vh; left: var(--x); width: var(--w); aspect-ratio: 1; opacity: .9;
+  animation: flakeFall var(--t, 24s) linear var(--d, 0s) infinite; will-change: transform;
+}
+.flake-fall svg { animation: flakeSpin 11s linear infinite; }
+@keyframes flakeFall { 0% { translate: 0 0; } 50% { translate: 3vw 56vh; } 100% { translate: -2vw 114vh; } }
+@keyframes flakeSpin { to { rotate: 360deg; } }
+
+/* ---------- Trên đầu: dây đèn sáng dịu lần lượt (không chớp), quả châu treo, cành thông 2 góc ---------- */
+.garland { position: absolute; top: 0; left: 0; right: 0; height: clamp(64px, 11vh, 118px); }
+.garland .halo { animation: bulbHalo 3.4s ease-in-out var(--d) infinite alternate; }
+.garland .glass { animation: bulbGlass 3.4s ease-in-out var(--d) infinite alternate; }
+@keyframes bulbHalo { from { opacity: .1; } to { opacity: .85; } }
+@keyframes bulbGlass { from { opacity: .62; } to { opacity: 1; } }
+
+.hang {
+  position: absolute; top: 0; left: var(--x); width: var(--w);
+  transform-origin: 50% 0; animation: hangSwing 5s ease-in-out var(--d, 0s) infinite alternate;
+}
+.hang::before {
+  content: ''; display: block; width: 2px; height: var(--len); margin: 0 auto;
+  background: linear-gradient(#b8862f, #d9a441);
+}
+.hang-orn { width: 100%; aspect-ratio: 100 / 110; margin-top: -3px; }
+@keyframes hangSwing { from { rotate: -5deg; } to { rotate: 5deg; } }
+
+.swag { position: absolute; top: -8px; width: clamp(150px, 16vw, 290px); aspect-ratio: 300 / 200; }
+.swag-l { left: -10px; }
+.swag-r { right: -10px; transform: scaleX(-1); }
+
+/* ---------- Dưới chân: đồi tuyết + chồng quà ---------- */
+.snowbank { position: absolute; left: 0; right: 0; bottom: 0; height: min(15vh, calc(100vw * 150 / 1600)); }
+.gift-stack { position: absolute; right: 10.5vw; bottom: 1vh; width: clamp(80px, 7.5vw, 145px); aspect-ratio: 180 / 150; }
+
+.mascot { position: absolute; will-change: transform; pointer-events: auto; cursor: pointer; }
 /* Mèo ló ra từ mép phải: phần thân bị cắt nằm ngoài màn hình */
 .m-cat {
   right: -3.4vw; top: 29%; width: clamp(120px, 12.5vw, 230px); aspect-ratio: 240 / 250;
@@ -22,16 +75,51 @@
 }
 /* Tuần lộc ló lên từ góc dưới bên trái */
 .m-deer {
-  left: -1.6vw; bottom: -3vh; width: clamp(140px, 14vw, 260px); aspect-ratio: 260 / 270;
+  left: -1.6vw; bottom: 5vh; width: clamp(140px, 14vw, 260px); aspect-ratio: 260 / 270;
   transform-origin: 50% 100%; animation: deerNod 7s ease-in-out infinite;
 }
 @keyframes deerNod { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(-2deg); } }
 /* Người tuyết ló lên từ góc dưới bên phải */
 .m-snow {
-  right: -.8vw; bottom: -6vh; width: clamp(130px, 12vw, 230px); aspect-ratio: 240 / 280;
+  right: -.8vw; bottom: 2.4vh; width: clamp(130px, 12vw, 230px); aspect-ratio: 240 / 280;
   transform-origin: 50% 100%; animation: snowSway 8s ease-in-out infinite;
 }
 @keyframes snowSway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(2deg) translateY(-6px); } }
+
+/* Bấm vào con vật: nhún nhảy + bong bóng lời chúc */
+.mascot.boing svg { animation: boing .7s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes boing {
+  0% { scale: 1 1; translate: 0 0; }
+  30% { scale: 1.08 .9; translate: 0 8px; }
+  62% { scale: .95 1.08; translate: 0 -12px; }
+  100% { scale: 1 1; translate: 0 0; }
+}
+.bubble {
+  position: absolute; z-index: 6; max-width: min(280px, 40vw); padding: .62em 1.05em .55em;
+  font-family: var(--font-hand); font-weight: 700; font-size: clamp(.9rem, 1.15vw, 1.15rem); line-height: 1.35;
+  color: var(--berry-deep); background: var(--cream); border-radius: 18px;
+  box-shadow: 0 0 0 3px #fff, 0 10px 18px rgba(0, 0, 0, .32);
+  animation: bubbleIn .38s cubic-bezier(.3, 1.5, .5, 1) both; pointer-events: none;
+}
+.bubble::after {
+  content: ''; position: absolute; width: 18px; height: 18px; background: var(--cream);
+  box-shadow: 3px 3px 0 #fff; rotate: 45deg;
+}
+.bubble-cat::after { right: -8px; top: 22px; box-shadow: 3px -3px 0 #fff; }
+.bubble-deer::after { left: 22px; bottom: -8px; }
+.bubble-snow::after { right: 26px; bottom: -8px; }
+.bubble.out { animation: bubbleOut .3s ease forwards; }
+@keyframes bubbleIn { from { opacity: 0; scale: .6; } to { opacity: 1; scale: 1; } }
+@keyframes bubbleOut { to { opacity: 0; scale: .85; } }
+
+/* Vệt lấp lánh nhỏ theo chuột */
+.trail {
+  position: absolute; z-index: 7; width: var(--sz); height: var(--sz); pointer-events: none;
+  translate: -50% -50%; background: var(--c);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: trailFade .9s ease-out forwards;
+}
+@keyframes trailFade { to { opacity: 0; transform: translate(var(--dx), 26px) scale(.3) rotate(90deg); } }
 
 /* Sticker nhỏ: vị trí/kích thước/góc nghiêng đặt bằng biến trong index.html */
 .fl {
@@ -69,12 +157,24 @@
   width: .72em; height: .72em; flex: none; background: var(--gold-deep);
   clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
 }
+/* cành nhựa ruồi + quả chuông đung đưa trên nhãn */
+.eb-holly, .eb-bell { position: absolute; z-index: 1; display: block; pointer-events: none; }
+.eb-holly svg, .eb-bell svg { display: block; width: 100%; height: 100%; filter: url(#sticker) drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); }
+.eb-holly { left: -1.1em; top: -1.15em; width: 2.7em; aspect-ratio: 120 / 100; rotate: -18deg; }
+.eb-bell {
+  right: -.75em; top: -1.05em; width: 1.75em; aspect-ratio: 100 / 110;
+  transform-origin: 50% 8%; rotate: 16deg; animation: bellRing 4.5s ease-in-out infinite;
+}
+@keyframes bellRing {
+  0%, 70%, 100% { rotate: 16deg; }
+  76% { rotate: 2deg; } 82% { rotate: 28deg; } 88% { rotate: 8deg; } 94% { rotate: 22deg; }
+}
 
 /* Tên bé: chữ tròn mập tô vàng, viền nâu đỏ mảnh + viền trắng dày + bóng đỏ (như chữ sticker).
    3 lớp chồng nhau: ::before (viền trắng + bóng) → ::after (viền đỏ) → chữ vàng ở trên cùng.
    Viền vẽ ở lớp dưới để chữ vàng che các nét chồng bên trong font. */
 .baby-name {
-  position: relative; isolation: isolate; margin: .06em 0 0; padding: 0 .16em;
+  position: relative; isolation: isolate; margin: .14em 0 0; padding: 0 .16em;
   font-family: var(--font-round); font-weight: 800; line-height: 1.12; letter-spacing: .01em;
   white-space: nowrap;
   /* --name-k < 1 khi tên quá dài (app.js thu nhỏ cho vừa bề ngang) */
@@ -94,9 +194,16 @@
   background: linear-gradient(180deg, #fff3cc 0%, #ffd56e 40%, #f6a83a 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+/* mũ Noel đội lệch trên chữ cái đầu */
+.name-hat {
+  position: absolute; z-index: 3; display: block; left: -.13em; top: -.11em; width: .48em; aspect-ratio: 140 / 110;
+  rotate: -22deg; transform-origin: 70% 90%; pointer-events: none; animation: hatWiggle 6s ease-in-out infinite;
+}
+.name-hat svg { display: block; width: 100%; height: 100%; filter: url(#sticker) drop-shadow(0 .03em .04em rgba(0, 0, 0, .3)); }
+@keyframes hatWiggle { 0%, 82%, 100% { rotate: -22deg; } 88% { rotate: -14deg; } 94% { rotate: -26deg; } }
 .nm-doodle { position: absolute; display: block; width: .3em; aspect-ratio: 1; pointer-events: none; animation: twinkleSoft 3.2s ease-in-out infinite alternate; }
 .nm-doodle svg { display: block; width: 100%; height: 100%; }
-.nm-doodle.d1 { left: -.28em; top: .18em; }
+.nm-doodle.d1 { left: -.36em; top: .52em; width: .24em; }
 .nm-doodle.d2 { right: -.24em; top: .02em; width: .2em; animation-delay: -1.2s; }
 .nm-doodle.d3 { right: -.2em; bottom: .14em; width: .2em; animation-delay: -2s; }
 .nm-doodle.d4 { left: -.1em; bottom: .08em; width: .14em; animation-delay: -.6s; }
@@ -141,6 +248,17 @@
   background: linear-gradient(180deg, #f6e8cc, #e9d4ad); rotate: 3.5deg;
   box-shadow: 0 12px 26px rgba(0, 0, 0, .35);
 }
+/* tuyết đọng trên mép trên của thẻ (có giọt băng nhỏ) */
+.card-frame::before {
+  content: ''; position: absolute; z-index: 2; left: 14px; right: 14px; top: -9px; height: 24px; pointer-events: none;
+  border-radius: 12px 12px 0 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 24'%3E%3Cpath d='M0 9C10 2 22 2 32 7C42 2 56 1 66 6C76 1 88 2 96 9V13C90 13 88 16 87 20C86 23 83 23 82 19C81 15 76 14 70 14C62 14 60 15 59 18C58 21 55 21 54 17C53 14 46 13 38 13C28 13 26 16 25 22C24 25 21 25 20 21C19 16 14 14 0 14Z' fill='%23fbfdff'/%3E%3Cpath d='M2 12C30 15 70 15 94 12' stroke='%23cfe2f0' stroke-width='2' fill='none'/%3E%3C/svg%3E") 0 0 / 96px 24px repeat-x;
+  filter: drop-shadow(0 2px 2px rgba(40, 70, 100, .28));
+}
+/* rê chuột vào thẻ: hình minh hoạ lắc nhẹ */
+.game-card:hover .card-art svg { animation: artWiggle .75s ease-in-out; }
+@keyframes artWiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -3deg; } 60% { rotate: 2.5deg; } }
+
 /* bìa đỏ nhung */
 .card-frame {
   position: relative; flex: 1; display: flex; padding: 9px; border-radius: 20px;

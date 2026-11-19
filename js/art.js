@@ -611,23 +611,164 @@ function stickerSVG(kind) {
       <ellipse cx="30" cy="30" rx="6" ry="10" transform="rotate(-35 30 30)" fill="#fff" opacity=".6"/>`);
   }
   if (kind === 'gift') return svg('0 0 100 100', '100%', '100%', giftInner('#2f7d5b', '#f2c46d', 1, 1.4));
-  if (kind === 'snowflake') {
-    const d = [0, 60, 120].map((a) => {
-      const r = (deg, len) => [50 + len * Math.sin((deg * Math.PI) / 180), 50 - len * Math.cos((deg * Math.PI) / 180)];
-      const seg = (deg) => {
-        const [x1, y1] = r(deg, 40), [x2, y2] = r(deg + 180, 40);
-        const [a1, b1] = r(deg, 26), [a2, b2] = r(deg - 26, 37), [a3, b3] = r(deg + 26, 37);
-        const [c1, e1] = r(deg + 180, 26), [c2, e2] = r(deg + 154, 37), [c3, e3] = r(deg + 206, 37);
-        return `M${x1} ${y1} L${x2} ${y2} M${a2} ${b2} L${a1} ${b1} L${a3} ${b3} M${c2} ${e2} L${c1} ${e1} L${c3} ${e3}`;
-      };
-      return seg(a);
-    }).join(' ').replace(/(\d+\.\d)\d+/g, '$1');
-    return svg('0 0 100 100', '100%', '100%', `<path d="${d}" stroke="${O}" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="${d}" stroke="#eaf4fb" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`);
-  }
+  if (kind === 'snowflake') return snowflakeSVG(O, '#eaf4fb');
   if (kind === 'cookie') return gingerSVG();
   const orn = { candy: 'candy', bell: 'bell', mitten: 'mitten' }[kind] || 'red-ball';
   return ornamentSVG(orn);
+}
+
+// Bông tuyết 6 cánh: nét viền + nét trong
+function snowflakeSVG(outline, fill, wo = 13, wi = 7) {
+  const r = (deg, len) => [50 + len * Math.sin((deg * Math.PI) / 180), 50 - len * Math.cos((deg * Math.PI) / 180)];
+  const d = [0, 60, 120].map((deg) => {
+    const [x1, y1] = r(deg, 40), [x2, y2] = r(deg + 180, 40);
+    const [a1, b1] = r(deg, 26), [a2, b2] = r(deg - 26, 37), [a3, b3] = r(deg + 26, 37);
+    const [c1, e1] = r(deg + 180, 26), [c2, e2] = r(deg + 154, 37), [c3, e3] = r(deg + 206, 37);
+    return `M${x1} ${y1} L${x2} ${y2} M${a2} ${b2} L${a1} ${b1} L${a3} ${b3} M${c2} ${e2} L${c1} ${e1} L${c3} ${e3}`;
+  }).join(' ').replace(/(\d+\.\d)\d+/g, '$1');
+  return svg('0 0 100 100', '100%', '100%', `<path d="${d}" stroke="${outline}" stroke-width="${wo}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${d}" stroke="${fill}" stroke-width="${wi}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`);
+}
+
+// =========================================================
+// TRANG TRÍ NOEL: dây đèn, cành thông 2 góc, đồi tuyết, chồng quà,
+// xe tuần lộc của ông già Noel, bông tuyết rơi, mũ Noel trên tên bé
+// =========================================================
+const BULB_COLORS = ['#ff6b6b', '#ffd36b', '#6fdc9a', '#fff3c4'];
+const qPoint = (p0, c, p1, t) => [
+  (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0],
+  (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1],
+];
+
+function decoSVG(kind) {
+  if (kind === 'garland') {
+    // Dây đèn võng 4 nhịp; mỗi bóng có quầng sáng thở chậm (CSS .bulb)
+    const xs = [-20, 380, 800, 1220, 1620];
+    let wire = `M${xs[0]} 10`, bulbs = '', n = 0;
+    for (let s = 0; s < xs.length - 1; s++) {
+      const p0 = [xs[s], 10], p1 = [xs[s + 1], 10], c = [(xs[s] + xs[s + 1]) / 2, 96];
+      wire += ` Q${c[0]} ${c[1]} ${p1[0]} ${p1[1]}`;
+      for (let k = 0; k < 7; k++) {
+        const t = (k + 0.5) / 7;
+        const [x, y] = qPoint(p0, c, p1, t);
+        const dx = 2 * (1 - t) * (c[0] - p0[0]) + 2 * t * (p1[0] - c[0]);
+        const dy = 2 * (1 - t) * (c[1] - p0[1]) + 2 * t * (p1[1] - c[1]);
+        const ang = ((Math.atan2(dy, dx) * 180) / Math.PI) * 0.6;
+        const col = n % 4;
+        bulbs += `<g class="bulb" style="--d:${((n * 0.37) % 3.4).toFixed(2)}s" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${ang.toFixed(1)})">
+          <circle class="halo" cy="16" r="18" fill="url(#bulbGlow${col})"/>
+          <rect x="-4.5" y="-2" width="9" height="8" rx="2" fill="#2b4a3a" stroke="${O}" stroke-width="2"/>
+          <ellipse class="glass" cy="16" rx="7.5" ry="10.5" fill="${BULB_COLORS[col]}" stroke="${O}" stroke-width="2.2"/>
+          <ellipse cx="-2.6" cy="12" rx="2" ry="3.6" fill="#fff" opacity=".7"/></g>`;
+        n++;
+      }
+    }
+    const defs = BULB_COLORS.map((c, i) => `<radialGradient id="bulbGlow${i}"><stop offset="0" stop-color="${c}" stop-opacity=".95"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`).join('');
+    return svg('0 0 1600 120', '100%', '100%', `<defs>${defs}</defs>
+      <path d="${wire}" stroke="#173f2e" stroke-width="3.5" fill="none" stroke-linecap="round"/>${bulbs}`, 'preserveAspectRatio="xMidYMin slice"');
+  }
+
+  if (kind === 'swag') {
+    // Cành thông ôm góc trên-trái, nơ đỏ, quả châu treo (góc phải lật bằng CSS)
+    const r = rng(77);
+    const greens = ['#1f5a43', '#24684d', '#2f7d5b', '#163f30', '#2b7055'];
+    let needles = '';
+    const arm = (x0, y0, x1, y1, steps) => {
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t, spread = 28 * (1 - t * 0.55);
+        for (let k = 0; k < 5; k++) {
+          const nx = (x + (r() - 0.5) * spread).toFixed(0), ny = (y + (r() - 0.5) * spread).toFixed(0);
+          needles += `<ellipse cx="${nx}" cy="${ny}" rx="${(14 + r() * 9).toFixed(0)}" ry="5" transform="rotate(${Math.round(r() * 360)} ${nx} ${ny})" fill="${greens[Math.floor(r() * greens.length)]}"/>`;
+        }
+      }
+    };
+    arm(8, 16, 272, 22, 26);
+    arm(14, 10, 20, 172, 16);
+    const bauble = (x, y0, len, rad, col) => `<path d="M${x} ${y0} V${y0 + len}" stroke="#d9a441" stroke-width="2.5"/>
+      <rect x="${x - 6}" y="${y0 + len - 4}" width="12" height="8" rx="2" fill="#d9a441" stroke="${O}" stroke-width="2"/>
+      <circle cx="${x}" cy="${y0 + len + rad + 3}" r="${rad}" fill="${col}" stroke="${O}" stroke-width="3"/>
+      <ellipse cx="${(x - rad * 0.35).toFixed(1)}" cy="${(y0 + len + rad * 0.75).toFixed(1)}" rx="${(rad * 0.22).toFixed(1)}" ry="${(rad * 0.38).toFixed(1)}" fill="#fff" opacity=".55"/>`;
+    const bow = `<g transform="translate(48 42)">
+      <path d="M0 0 C-30 -34 -66 -20 -50 6 C-42 18 -20 12 0 0Z" fill="#d6423a" stroke="#7a1f1a" stroke-width="3.5"/>
+      <path d="M0 0 C30 -34 66 -20 50 6 C42 18 20 12 0 0Z" fill="#d6423a" stroke="#7a1f1a" stroke-width="3.5"/>
+      <path d="M-4 4 L-22 52 L-10 46 L-4 60 L3 8Z M4 4 L22 52 L10 46 L4 60 L-3 8Z" fill="#c43a33" stroke="#7a1f1a" stroke-width="3" stroke-linejoin="round"/>
+      <circle r="11" fill="#e0524a" stroke="#7a1f1a" stroke-width="3.5"/></g>`;
+    return svg('0 0 300 200', '100%', '100%', `${bauble(150, 22, 34, 15, '#f2c46d')}${bauble(226, 22, 14, 12, '#d6423a')}${bauble(22, 120, 22, 12, '#f2c46d')}
+      <g>${needles}</g>${bow}`);
+  }
+
+  if (kind === 'snowbank') {
+    // Đồi tuyết chạy ngang đáy màn hình (cao ở 2 bên, thấp ở giữa) + hàng thông xa phủ tuyết
+    const tree = (x, h, o) => {
+      const w = h * 0.56, b = 150;
+      return `<g opacity="${o}"><path d="M${x} ${b - h} L${x + w * 0.42} ${b - h * 0.48} H${x - w * 0.42} Z M${x} ${b - h * 0.72} L${x + w * 0.62} ${b - h * 0.1} H${x - w * 0.62} Z" fill="#1d4a35"/>
+        <path d="M${x} ${b - h} L${(x + w * 0.15).toFixed(1)} ${(b - h * 0.83).toFixed(1)} H${(x - w * 0.15).toFixed(1)} Z" fill="#fbfdff"/></g>`;
+    };
+    const trees = [[330, 72, 0.6], [420, 96, 0.66], [520, 64, 0.55], [612, 86, 0.6], [996, 82, 0.6], [1088, 62, 0.55], [1180, 98, 0.66], [1272, 72, 0.6]]
+      .map(([x, h, o]) => tree(x, h, o)).join('');
+    const r = rng(9);
+    let glints = '';
+    for (let i = 0; i < 40; i++) glints += `<circle cx="${(r() * 1600).toFixed(0)}" cy="${(112 + r() * 34).toFixed(0)}" r="${(1 + r() * 1.6).toFixed(1)}" fill="#ffffff" opacity=".9"/>`;
+    const front = 'M0 150 L0 80 C90 60 210 68 300 94 C420 124 560 118 700 114 C860 110 1000 118 1140 112 C1250 106 1330 82 1420 74 C1500 68 1560 76 1600 84 L1600 150 Z';
+    return svg('0 0 1600 150', '100%', '100%', `${trees}
+      <path d="M0 150 L0 52 C120 24 260 40 360 70 C520 104 700 92 860 98 C1040 104 1180 84 1300 56 C1400 34 1520 34 1600 48 L1600 150 Z" fill="#dce8f2"/>
+      <path d="${front}" fill="#fbfdff"/>
+      <path d="${front.replace(/ L1600 150 Z$/, '').replace(/^M0 150 L/, 'M')}" stroke="#c9dceb" stroke-width="3" fill="none"/>
+      ${glints}`, 'preserveAspectRatio="none"');
+  }
+
+  if (kind === 'gifts') {
+    const g = (x, y, s, box, rib) => `<g transform="translate(${x} ${y}) scale(${s})">${giftInner(box, rib, 1, 1.4)}</g>`;
+    return svg('0 0 180 150', '100%', '100%', `${g(74, 70, 0.84, '#2f7d5b', '#fdf3df')}${g(-4, 46, 1.08, '#d6423a', '#f2c46d')}${g(22, 20, 0.62, '#f2c46d', '#d6423a')}`);
+  }
+
+  if (kind === 'sleigh') {
+    // Ông già Noel trên xe trượt tuyết, 2 tuần lộc kéo, bay từ phải sang trái
+    const deer = (x, y, lead) => `<g transform="translate(${x} ${y})">
+      <path d="M-16 8 L-34 20 M-6 11 L-16 30 M14 10 L26 26 M22 5 L42 12" stroke="${O}" stroke-width="5" stroke-linecap="round"/>
+      <ellipse rx="30" ry="14" fill="#b07042" stroke="${O}" stroke-width="3.5"/>
+      <circle cx="29" cy="-7" r="5" fill="#fdf3df" stroke="${O}" stroke-width="2.5"/>
+      <path d="M-20 -6 Q-28 -18 -32 -24" stroke="${O}" stroke-width="15" stroke-linecap="round"/>
+      <path d="M-20 -6 Q-28 -18 -32 -24" stroke="#b07042" stroke-width="9" stroke-linecap="round"/>
+      <path d="M-34 -36 L-40 -50 M-38 -44 L-46 -46 M-28 -36 L-24 -50 M-26 -44 L-18 -47" stroke="#e3b47c" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="-36" cy="-27" r="11" fill="#b07042" stroke="${O}" stroke-width="3.5"/>
+      <ellipse cx="-45" cy="-23" rx="7" ry="5.5" fill="#f1d2ad" stroke="${O}" stroke-width="2.5"/>
+      <circle cx="-51" cy="-24" r="${lead ? 4.6 : 3.4}" fill="${lead ? '#ff5a5a' : O}" stroke="${O}" stroke-width="1.5"/>
+      <circle cx="-35" cy="-30" r="2.3" fill="${O}"/>
+      <path d="M-14 -4 Q0 2 12 -4" stroke="#d6423a" stroke-width="5" fill="none" stroke-linecap="round"/></g>`;
+    return svg('0 0 380 150', '100%', '100%', `
+      <path d="M200 92 Q150 100 128 80 M200 92 Q120 104 48 82" stroke="#f2c46d" stroke-width="2.5" fill="none"/>
+      ${deer(70, 78, true)}${deer(150, 76, false)}
+      <g transform="translate(222 92)">
+        <path d="M74 -6 Q62 -48 94 -52 Q126 -48 114 -6 Z" fill="#a8673a" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+        <rect x="80" y="-62" width="14" height="14" rx="2" fill="#d6423a" stroke="${O}" stroke-width="2.5"/>
+        <rect x="98" y="-66" width="14" height="16" rx="2" fill="#2f7d5b" stroke="${O}" stroke-width="2.5"/>
+        <path d="M12 -30 Q-2 -44 -2 -60" stroke="${O}" stroke-width="13" fill="none" stroke-linecap="round"/>
+        <path d="M12 -30 Q-2 -44 -2 -60" stroke="#d6423a" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <circle cx="-2" cy="-62" r="6" fill="#fffdf8" stroke="${O}" stroke-width="2.5"/>
+        <path d="M10 -6 Q8 -40 34 -42 Q60 -40 58 -6 Z" fill="#d6423a" stroke="${O}" stroke-width="3.5"/>
+        <rect x="12" y="-20" width="44" height="7" fill="${O}"/><rect x="29" y="-21" width="10" height="9" rx="1.5" fill="#f2c46d"/>
+        <circle cx="34" cy="-52" r="12" fill="#f8d6bb" stroke="${O}" stroke-width="3"/>
+        <path d="M22 -52 Q34 -26 46 -52 Q40 -44 34 -44 Q28 -44 22 -52 Z" fill="#fffdf8" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="30" cy="-55" r="1.8" fill="${O}"/><circle cx="39" cy="-55" r="1.8" fill="${O}"/>
+        <path d="M22 -60 Q30 -82 48 -76 Q58 -72 60 -62 Q52 -68 46 -64 Z" fill="#d6423a" stroke="${O}" stroke-width="3" stroke-linejoin="round"/>
+        <rect x="20" y="-64" width="29" height="7" rx="3.5" fill="#fffdf8" stroke="${O}" stroke-width="2.5"/>
+        <circle cx="60" cy="-61" r="5" fill="#fffdf8" stroke="${O}" stroke-width="2"/>
+        <path d="M-6 -10 Q-12 -30 4 -30 L4 -14 L120 -14 Q128 -14 128 -4 L128 10 Q128 22 114 22 L10 22 Q-6 22 -6 6 Z" fill="#c8353a" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M8 -6 H118" stroke="#f2c46d" stroke-width="4"/>
+        <path d="M-20 34 H114 Q132 34 132 22 M10 22 V34 M100 22 V34 M-20 34 Q-30 32 -28 24 Q-26 18 -18 20" stroke="#f2c46d" stroke-width="5" fill="none" stroke-linecap="round"/>
+      </g>
+      ${sparkle(366, 70, 0.7, '#fff3c4')}${sparkle(352, 104, 0.5)}${sparkle(374, 116, 0.4, '#fff3c4')}`);
+  }
+
+  if (kind === 'flake-soft') return snowflakeSVG('#a9c9e2', '#ffffff', 11, 6);
+
+  // Mũ Noel nhỏ đội lên chữ cái đầu của tên bé
+  return svg('0 0 140 110', '100%', '100%', `
+    <path d="M14 84 Q30 22 86 16 Q126 14 132 54 Q114 40 98 46 Q92 62 96 82 Z" fill="#d6423a" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M40 58 Q56 32 84 28" stroke="#ec6a5f" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M6 84 Q56 66 104 80 Q110 92 102 100 Q56 86 12 102 Q2 94 6 84 Z" fill="#fffdf8" stroke="${O}" stroke-width="4.5" stroke-linejoin="round"/>
+    <circle cx="130" cy="60" r="13" fill="#fffdf8" stroke="${O}" stroke-width="4.5"/>`);
 }
 
 // Hoạ tiết vẽ tay (nét phẳng, không viền sticker)
@@ -650,6 +791,8 @@ export function cardArt(name) {
   if (name.startsWith('mascot-')) return mascotSVG(name.slice(7));
   if (name.startsWith('st-')) return stickerSVG(name.slice(3));
   if (name.startsWith('doodle-')) return doodleSVG(name.slice(7));
+  if (name.startsWith('deco-')) return decoSVG(name.slice(5));
+  if (name.startsWith('orn-')) return ornamentSVG(name.slice(4));
   if (name === 'card-photobooth') {
     const back = `<g transform="rotate(-9 110 130)">
         <rect x="46" y="36" width="128" height="176" rx="14" fill="#9e2630" stroke="${O}" stroke-width="5"/>

@@ -1,4 +1,4 @@
-// Tuyết rơi thưa, chậm, không nhấp nháy.
+// Tuyết rơi chậm, vừa phải, không nhấp nháy.
 export function startSnow(canvas) {
   const ctx = canvas.getContext('2d');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -22,7 +22,7 @@ export function startSnow(canvas) {
     w = window.innerWidth; h = window.innerHeight;
     canvas.width = w * dpr; canvas.height = h * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const target = Math.round((w * h) / 26000);   // thưa
+    const target = Math.round((w * h) / 17000);   // vừa phải, vẫn nhẹ nhàng
     while (flakes.length < target) flakes.push(makeFlake());
     flakes.length = Math.min(flakes.length, target);
   }

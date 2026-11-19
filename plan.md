@@ -25,8 +25,8 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 | 7 | Rà soát & sửa lỗi logic toàn bộ 3 game + Cài đặt; chỉ còn một cách mở web | ✅ Xong |
 | 8 | Phong cách "cute" (sticker, sổ tay, chữ tròn) giữ nguyên bảng màu đỏ – xanh lá | 🟡 Trang chính xong · chờ duyệt để làm Game 1, 2, 3 + Cài đặt |
 | 9 | Sửa lỗi logic lần 2 (vừa màn hình laptop, tên dài/trống, nút nhạc, phím Space, khay Game 2) | ✅ Xong |
-| 10 | Thêm chi tiết Noel cho sinh động | ⏳ Chờ duyệt hướng làm |
-| 11 | Game 1: mã QR cho khách đoán nghề bé bốc + Google Sheet + giao diện chủ tiệc | ⏳ Chờ duyệt hướng làm |
+| 10 | Thêm chi tiết Noel cho sinh động (trang chính) | ✅ Xong |
+| 11 | Game 1: mã QR cho khách đoán nghề bé bốc + Google Sheet + giao diện chủ tiệc | 🔨 Đang làm |
 
 ## Nhật ký tiến độ
 
@@ -177,6 +177,22 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 | Game 2 | Màn hình hẹp hơn ~1400px → nút "Thắp sáng cây thông" bị cắt mất ở mép phải | Khay đồ trang trí tự co; dưới 1300px chỉ hiện hình món đồ (to, rõ hơn) |
 
 **Đã kiểm tra** (Edge headless, `file://`) ở 1366×657, 1280×720, 1024×768, 1600×900: trang chính vừa khít; tên 19 ký tự nằm gọn; nút nhạc bấm 1 lần là phát; Tab + Space mở đúng thẻ 2; tên trống → "Bé yêu", tên "Bé Na" → tiêu đề "Thôi nôi Bé Na"; khay Game 2 không bị cắt; chạy lại toàn bộ kịch bản 3 game: đạt.
+
+### 19/11/2026 — Giai đoạn 10: Chi tiết Noel cho trang chính ✅
+**Yêu cầu**: thêm nhiều chi tiết Giáng sinh cho sinh động (duyệt toàn bộ đề xuất).
+**Đã làm**
+- **Đầu màn hình**: dây đèn 28 bóng (đỏ, vàng, xanh, kem) vắt 4 nhịp ngang màn hình, các bóng sáng dịu lần lượt, không chớp. Cành thông thắt nơ đỏ ôm 2 góc trên, có quả châu treo. 4 món treo lủng lẳng đung đưa: quả châu đỏ, kẹo gậy, quả châu vàng, ngôi sao.
+- **Chân màn hình**: đồi tuyết trắng chạy ngang đáy (cao ở 2 bên, thấp ở giữa) có hàng thông xa phủ tuyết và tuyết lấp lánh. Tuần lộc và người tuyết đứng trong tuyết. Chồng 3 hộp quà ở góc phải.
+- **Bầu trời**: tuyết rơi dày hơn khoảng 50% (vẫn nhẹ). Thêm 5 bông tuyết to xoay chậm khi rơi. Khoảng 42 giây một lần, **xe trượt tuyết của ông già Noel** (2 tuần lộc kéo, ông vẫy tay, túi quà) bay vòng cung từ phải sang trái.
+- **Trên chữ và thẻ**: mũ Noel đội lệch trên chữ cái đầu của tên bé (thỉnh thoảng lắc nhẹ). Nhãn "Mừng thôi nôi" có cành nhựa ruồi và quả chuông đung đưa. Tuyết đọng có giọt băng trên mép trên 3 thẻ.
+- **Tương tác cho các bé** (`js/home.js` mới):
+  - Bấm vào mèo / tuần lộc / người tuyết thì con vật nhún nhảy, hiện bong bóng lời chúc có tên bé ("Meo meo! Chúc mừng thôi nôi bé Na!", "Ho ho ho!"…) kèm tiếng chuông leng keng mới (`sfx.jingle`). Mỗi lần bấm một câu khác.
+  - Rê chuột để lại vệt lấp lánh vàng nhỏ.
+  - Rê vào thẻ game thì hình minh hoạ lắc nhẹ.
+- Phần tự co cho vừa màn hình chuyển từ `app.js` sang `home.js`. Trang chính giờ là một màn có `init/enter/leave` như các game.
+- Mọi chuyển động chậm, không chớp. Máy bật "giảm chuyển động" thì tự tắt. Điện thoại ẩn phần trang trí.
+
+**Đã kiểm tra** (Edge headless, `file://`): 1920×1080, 1600×900, 1366×657, 1280×720, 1024×768 đều vừa một màn, không tràn ngang. Dừng hiệu ứng xe tuần lộc ở 7% và 27% để chụp: hiện đúng. Bấm tuần lộc → bong bóng "Ho ho ho! Ông già Noel sắp tới rồi!". Chạy lại toàn bộ kịch bản 3 game + thao tác trang chính: đạt, không lỗi.
 
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.

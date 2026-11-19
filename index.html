@@ -51,22 +51,39 @@
     <section class="screen" id="screen-home" data-screen="home">
       <!-- Trang trí: con vật ló ra ở mép + sticker bay lơ lửng -->
       <div class="home-deco" aria-hidden="true">
-        <div class="mascot m-cat" data-art="mascot-cat"></div>
-        <div class="mascot m-deer" data-art="mascot-deer"></div>
-        <div class="mascot m-snow" data-art="mascot-snow"></div>
-        <i class="fl" data-art="st-candy" style="--x:7%;--y:15%;--w:3.6vw;--r:-16deg;--d:-1s"></i>
-        <i class="fl" data-art="st-snowflake" style="--x:26%;--y:11%;--w:2.9vw;--r:8deg;--d:-4s"></i>
-        <i class="fl" data-art="st-star" style="--x:18%;--y:31%;--w:3vw;--r:12deg;--d:-2.5s"></i>
-        <i class="fl" data-art="st-bell" style="--x:3.5%;--y:45%;--w:3.4vw;--r:-10deg;--d:-5s"></i>
-        <i class="fl" data-art="st-mitten" style="--x:68%;--y:9%;--w:3vw;--r:14deg;--d:-3s"></i>
-        <i class="fl" data-art="st-holly" style="--x:82%;--y:13%;--w:4.6vw;--r:8deg;--d:-6s"></i>
-        <i class="fl" data-art="st-heart" style="--x:77%;--y:31%;--w:2.7vw;--r:-12deg;--d:-1.5s"></i>
-        <i class="fl" data-art="st-gift" style="--x:90%;--y:58%;--w:3.3vw;--r:-8deg;--d:-3.5s"></i>
+        <!-- Bầu trời: xe tuần lộc của ông già Noel bay ngang, bông tuyết to rơi chậm -->
+        <div class="sleigh"><div class="sleigh-bob" data-art="deco-sleigh"></div></div>
+        <div class="flake-fall" data-art="deco-flake-soft" style="--x:11%;--w:30px;--t:26s;--d:-4s"></div>
+        <div class="flake-fall" data-art="deco-flake-soft" style="--x:31%;--w:22px;--t:21s;--d:-15s"></div>
+        <div class="flake-fall" data-art="deco-flake-soft" style="--x:57%;--w:26px;--t:24s;--d:-9s"></div>
+        <div class="flake-fall" data-art="deco-flake-soft" style="--x:72%;--w:34px;--t:29s;--d:-20s"></div>
+        <div class="flake-fall" data-art="deco-flake-soft" style="--x:93%;--w:24px;--t:22s;--d:-2s"></div>
+        <!-- Trên đầu: dây đèn, quả châu treo lủng lẳng, cành thông thắt nơ ở 2 góc -->
+        <div class="garland" data-art="deco-garland"></div>
+        <div class="hang" style="--x:14%;--len:58px;--w:46px;--d:-1s"><div class="hang-orn" data-art="orn-red-ball"></div></div>
+        <div class="hang" style="--x:25%;--len:26px;--w:40px;--d:-3s"><div class="hang-orn" data-art="orn-candy"></div></div>
+        <div class="hang" style="--x:73%;--len:34px;--w:42px;--d:-2s"><div class="hang-orn" data-art="orn-gold-ball"></div></div>
+        <div class="hang" style="--x:83%;--len:70px;--w:46px;--d:-4s"><div class="hang-orn" data-art="orn-star"></div></div>
+        <div class="swag swag-l" data-art="deco-swag"></div>
+        <div class="swag swag-r" data-art="deco-swag"></div>
+        <!-- Sticker nhỏ bay lơ lửng -->
+        <i class="fl" data-art="st-star" style="--x:17%;--y:33%;--w:3vw;--r:12deg;--d:-2.5s"></i>
+        <i class="fl" data-art="st-candy" style="--x:3.5%;--y:46%;--w:3.4vw;--r:-14deg;--d:-5s"></i>
+        <i class="fl" data-art="st-heart" style="--x:78%;--y:33%;--w:2.7vw;--r:-12deg;--d:-1.5s"></i>
+        <i class="fl" data-art="st-mitten" style="--x:90%;--y:60%;--w:3vw;--r:-8deg;--d:-3.5s"></i>
+        <!-- Con vật ló ra ở mép: bấm vào sẽ nói lời chúc -->
+        <div class="mascot m-cat" data-art="mascot-cat" data-mascot="cat"></div>
+        <div class="mascot m-deer" data-art="mascot-deer" data-mascot="deer"></div>
+        <div class="mascot m-snow" data-art="mascot-snow" data-mascot="snow"></div>
+        <!-- Dưới chân: đồi tuyết, chồng quà -->
+        <div class="snowbank" data-art="deco-snowbank"></div>
+        <div class="gift-stack" data-art="deco-gifts"></div>
       </div>
 
       <div class="home">
-        <p class="eyebrow"><i class="eb-spark"></i>Mừng thôi nôi<i class="eb-spark"></i></p>
+        <p class="eyebrow"><i class="eb-holly" data-art="st-holly" aria-hidden="true"></i><i class="eb-spark"></i>Mừng thôi nôi<i class="eb-spark"></i><i class="eb-bell" data-art="st-bell" aria-hidden="true"></i></p>
         <h1 class="baby-name" data-text="Na"><span data-bind="babyName">Na</span>
+          <i class="name-hat" data-art="deco-santa-hat" aria-hidden="true"></i>
           <i class="nm-doodle d1" data-art="doodle-spark" aria-hidden="true"></i>
           <i class="nm-doodle d2" data-art="doodle-spark-cream" aria-hidden="true"></i>
           <i class="nm-doodle d3" data-art="doodle-heart" aria-hidden="true"></i>
