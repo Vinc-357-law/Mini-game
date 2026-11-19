@@ -23,7 +23,7 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 | 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ✅ Xong (sau đó bỏ ở giai đoạn 6) |
 | 6 | Đổi tông đỏ – xanh lá, bỏ webcam: Game 1 thành "Thẻ ước mơ", nhấp đúp `index.html` là chạy | ✅ Xong |
 | 7 | Rà soát & sửa lỗi logic toàn bộ 3 game + Cài đặt; chỉ còn một cách mở web | ✅ Xong |
-| 8 | Phong cách "cute" (sticker, sổ tay, chữ tròn) giữ nguyên bảng màu đỏ – xanh lá | ⏳ Chờ duyệt hướng làm |
+| 8 | Phong cách "cute" (sticker, sổ tay, chữ tròn) giữ nguyên bảng màu đỏ – xanh lá | 🟡 Trang chính xong · chờ duyệt để làm Game 1, 2, 3 + Cài đặt |
 
 ## Nhật ký tiến độ
 
@@ -146,6 +146,22 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 | Game 3 | Chưa nhập khách nào → báo "Không còn khách nào trong lò" (khó hiểu) | Báo "Chưa có khách — vào Cài đặt" |
 
 **Đã kiểm tra** (Edge headless, mở bằng `file://`, có kịch bản cho từng lỗi trên): Space 2 lần chỉ lưu 1 thẻ; sửa tên + Esc giữ tên; đổi nghề giữa chừng không lật thẻ cũ; `bin` → "Bin" bé trai; Bống + MC bấm Bé trai → bé trai; `Tí | bé gái` → bé gái; Cài đặt gõ 2 ô liên tiếp đều lưu, gõ rồi khôi phục mẫu ngay → đúng dữ liệu mẫu, gõ rồi rời màn → đã lưu; Hoàn tác 2 lần → cây, quà, dữ liệu, bộ đếm đều về 0; rời màn giữa lúc kéo → khay bình thường; rời lò giữa lúc nướng → 0 người trúng, vào lại lò sạch; tăng số lượng Giải A sau khi đã bốc Giải B → đang bốc "Giải A, Lượt 2 / 2"; 32 khách có 1 người không ghi bàn → không có bánh "?". Chạy lại toàn bộ kịch bản cũ: đạt, Console không lỗi.
+
+### 19/11/2026 — Giai đoạn 8 (phần 1): Trang chính phong cách "cute" ✅
+**Yêu cầu**: làm nét cute như ảnh mẫu (thẻ công thức kiểu sổ tay, sticker, chữ tròn), giữ nguyên bảng màu. Người dùng duyệt: chữ tròn mập cho tiêu đề, cả 3 con vật (tuần lộc, người tuyết, mèo đội mũ Noel), **làm trang chính trước** để xem.
+**Đã làm** (chỉ học phong cách, tự vẽ mới toàn bộ, không dùng nhân vật/chữ trong ảnh mẫu)
+- Font mới, tải sẵn để chạy không cần mạng: **Baloo 2** (tiêu đề tròn mập) và **Mali** (chữ viết tay tròn), đều có dấu tiếng Việt. Baloo 2 là font biến thiên nên chỉ cần 1 file cho mỗi bộ chữ.
+- **Tên bé**: chữ tròn mập tô vàng chuyển màu, viền nâu đỏ mảnh, viền trắng dày và bóng đỏ, giống chữ sticker. Xung quanh có sao lấp lánh nhấp nháy nhẹ và một trái tim vẽ tay. (Viền nâu đỏ nằm ở lớp dưới chữ vàng để không lộ các nét chồng bên trong font.)
+- **"Mừng thôi nôi"** thành nhãn giấy kem có đường khâu và đuôi ruy băng đỏ hai bên. **Dòng phụ** chữ viết tay trên vệt cọ đỏ, hai đầu có bông tuyết.
+- **3 thẻ game** thành trang sổ: bìa đỏ nhung, giấy kem kẻ ô mờ, đường chỉ khâu, 3 góc bọc vàng, băng dính washi (đỏ / xanh / vàng), sticker số thứ tự, tờ giấy lệch phía sau. Thẻ nghiêng nhẹ, rê chuột thì dựng thẳng và nhấc lên. Hình minh hoạ có viền trắng kiểu sticker trên vệt màu loang. 3 thẻ luôn cao bằng nhau.
+- **Con vật ló ra ở mép**: mèo trắng đốm cam đội mũ Noel (mép phải), tuần lộc mũi đỏ quàng khăn xanh (góc dưới trái), người tuyết đội mũ len đỏ vẫy tay (góc dưới phải). Chúng chuyển động rất chậm và nhẹ. Thêm 8 sticker nhỏ bay lơ lửng: kẹo gậy, bông tuyết, sao, chuông, găng tay, lá nhựa ruồi, trái tim, hộp quà.
+- Viền trắng sticker tạo bằng **một bộ lọc SVG dùng chung** (`#sticker` trong `index.html`), không phải vẽ lại từng hình.
+- **Mặt bé kiểu chibi** (mắt to 2 đốm sáng, má hồng có vạch, miệng cười há, bé gái có mi) dùng cho hình thẻ 1. Game 1 tạm giữ mặt cũ đến khi làm phần tiếp theo.
+- **Mẩu giấy phím tắt** dán băng dính chéo, phím vẽ như nút bấm. **Nút trên cùng** (nhạc, toàn màn hình, cài đặt) thành viên kẹo kem có gờ, bấm thấy lún, bật nhạc thì chuyển đỏ.
+- Tự co theo màn hình: 1920×1080, 1600×900, 1366×768, 1280×720, 1024×768 đều vừa một màn không tràn; dưới 1200px ẩn bớt mèo và sticker; điện thoại thì xếp thẻ một cột, ẩn trang trí.
+
+**Đã kiểm tra** (Edge headless, `file://`): chụp 5 cỡ màn hình + tên dài có dấu "Bảo Ngọc"; bấm vào thẻ 1, 2 → mở đúng game; `Space` → Game 1; nút nhạc đổi trạng thái; chạy lại toàn bộ kịch bản 3 game: đạt, không lỗi (trừ thông báo "không có bgm.mp3" khi bật nhạc — bình thường, web chuyển sang hộp nhạc có sẵn).
+**Tiếp theo (chờ duyệt)**: áp phong cách này cho Game 1 (thẻ chọn nghề + thẻ ước mơ + album), Game 2, Game 3, Cài đặt và các hộp thoại.
 
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.

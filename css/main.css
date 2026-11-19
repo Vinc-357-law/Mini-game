@@ -34,6 +34,8 @@
 
   --font-body: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
   --font-script: "Dancing Script", "Segoe Script", cursive;
+  --font-round: "Baloo 2", "Be Vietnam Pro", "Segoe UI", sans-serif;   /* tiêu đề tròn mập kiểu sticker */
+  --font-hand: "Mali", "Be Vietnam Pro", "Segoe UI", sans-serif;       /* chữ viết tay tròn */
   --font-emoji: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji";
 
   --radius: 22px;
@@ -59,6 +61,9 @@ body {
 input, textarea, button, select { font: inherit; color: inherit; }
 textarea, input { user-select: text; }
 [hidden] { display: none !important; }
+
+/* Chứa bộ lọc SVG (viền sticker) — không dùng display:none vì trình duyệt sẽ bỏ qua bộ lọc */
+.svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* ---------- Nền: tuyết + đốm sáng ---------- */
 #snow { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
@@ -146,60 +151,7 @@ kbd {
 }
 .screen-sub { margin: 4px 0 0; color: var(--muted); font-size: 1.05rem; }
 
-/* ---------- Trang chủ ---------- */
-.home {
-  margin: auto; width: 100%; max-width: 1180px;
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-}
-.eyebrow {
-  margin: 0; text-transform: uppercase; letter-spacing: .38em; font-size: .95rem;
-  color: var(--gold); opacity: .85; font-weight: 500;
-}
-.baby-name {
-  margin: 0; font-family: var(--font-script); font-weight: 700; line-height: 1;
-  font-size: clamp(5rem, 13vw, 10.5rem); color: var(--candle);
-  text-shadow: 0 0 18px rgba(255, 196, 110, .55), 0 0 60px rgba(255, 170, 70, .35), 0 4px 0 rgba(120, 70, 10, .35);
-  padding: 0 .2em;
-}
-.home-sub { margin: 6px 0 36px; color: var(--muted); font-size: 1.1rem; }
-.game-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; width: 100%; }
-/* Thẻ game: tấm thiệp giấy kem, ruy băng đỏ ở góc */
-.game-card {
-  position: relative; display: flex; flex-direction: column; align-items: center; overflow: hidden;
-  padding: 22px 22px 26px; border-radius: var(--radius);
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 35%, #fffaf0, transparent 75%),
-    linear-gradient(180deg, var(--cream), var(--paper));
-  border: 3px solid var(--berry-deep); outline: 1px solid rgba(242, 196, 109, .9); outline-offset: -9px;
-  text-decoration: none; color: var(--ink);
-  box-shadow: var(--shadow); cursor: pointer;
-  transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s;
-}
-.game-card::before {
-  content: ''; position: absolute; top: 20px; right: -44px; width: 170px; height: 24px;
-  transform: rotate(40deg);
-  background: linear-gradient(180deg, #d44a50, var(--berry) 50%, var(--berry-deep));
-  border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold);
-  box-shadow: 0 3px 8px rgba(0,0,0,.25);
-}
-.game-card:hover, .game-card:focus-visible {
-  transform: translateY(-6px); outline-color: var(--gold-deep);
-  box-shadow: var(--shadow), 0 0 50px rgba(255, 207, 122, .3); outline-style: solid;
-}
-.card-num {
-  position: absolute; top: 16px; left: 18px; width: 32px; height: 32px; border-radius: 50%;
-  display: grid; place-items: center; font-size: .9rem; font-weight: 700;
-  color: var(--cream); background: var(--pine-600); border: 2px solid var(--gold);
-}
-.card-art {
-  width: 100%; aspect-ratio: 4 / 3; display: grid; place-items: center; border-radius: 16px;
-  background: radial-gradient(ellipse at 50% 55%, var(--pine-500), var(--pine-700) 75%);
-  box-shadow: inset 0 0 30px rgba(0,0,0,.35);
-}
-.card-art svg { width: 82%; height: 100%; filter: drop-shadow(0 10px 18px rgba(0,0,0,.35)); }
-.game-card h2 { margin: 14px 0 6px; font-size: 1.32rem; font-weight: 700; color: var(--berry-deep); }
-.game-card p { margin: 0; color: #6e5440; font-size: .98rem; }
-.kbd-hint { margin-top: 30px; color: var(--muted); font-size: .9rem; opacity: .8; }
+/* Trang chủ: xem css/home.css */
 
 /* ---------- Cài đặt ---------- */
 .settings { width: 100%; max-width: 1180px; margin: 0 auto; padding-bottom: 40px; }
@@ -282,11 +234,9 @@ kbd {
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
-  .game-cards { grid-template-columns: 1fr; max-width: 460px; }
   .settings-grid { grid-template-columns: 1fr; }
   body { overflow: auto; }
   .screen { padding-left: 16px; padding-right: 16px; overflow-y: auto; }
-  .home { margin-top: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

@@ -7,11 +7,23 @@
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/fonts/fonts.css">
   <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/game1.css">
   <link rel="stylesheet" href="css/game2.css">
   <link rel="stylesheet" href="css/game3.css">
 </head>
 <body>
+  <!-- Bộ lọc tạo viền trắng dày kiểu sticker: dùng bằng CSS  filter: url(#sticker) -->
+  <svg class="svg-defs" aria-hidden="true" focusable="false">
+    <filter id="sticker" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feMorphology in="SourceAlpha" operator="dilate" radius="4" result="grow"/>
+      <feGaussianBlur in="grow" stdDeviation="1.4" result="soft"/>
+      <feComponentTransfer in="soft" result="edge"><feFuncA type="linear" slope="4" intercept="-1"/></feComponentTransfer>
+      <feFlood flood-color="#ffffff"/>
+      <feComposite in2="edge" operator="in" result="outline"/>
+      <feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </svg>
   <canvas id="snow" aria-hidden="true"></canvas>
   <div class="bokeh" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 
@@ -37,28 +49,70 @@
   <main id="app">
     <!-- Màn hình chính -->
     <section class="screen" id="screen-home" data-screen="home">
+      <!-- Trang trí: con vật ló ra ở mép + sticker bay lơ lửng -->
+      <div class="home-deco" aria-hidden="true">
+        <div class="mascot m-cat" data-art="mascot-cat"></div>
+        <div class="mascot m-deer" data-art="mascot-deer"></div>
+        <div class="mascot m-snow" data-art="mascot-snow"></div>
+        <i class="fl" data-art="st-candy" style="--x:7%;--y:15%;--w:3.6vw;--r:-16deg;--d:-1s"></i>
+        <i class="fl" data-art="st-snowflake" style="--x:26%;--y:11%;--w:2.9vw;--r:8deg;--d:-4s"></i>
+        <i class="fl" data-art="st-star" style="--x:18%;--y:31%;--w:3vw;--r:12deg;--d:-2.5s"></i>
+        <i class="fl" data-art="st-bell" style="--x:3.5%;--y:45%;--w:3.4vw;--r:-10deg;--d:-5s"></i>
+        <i class="fl" data-art="st-mitten" style="--x:68%;--y:9%;--w:3vw;--r:14deg;--d:-3s"></i>
+        <i class="fl" data-art="st-holly" style="--x:82%;--y:13%;--w:4.6vw;--r:8deg;--d:-6s"></i>
+        <i class="fl" data-art="st-heart" style="--x:77%;--y:31%;--w:2.7vw;--r:-12deg;--d:-1.5s"></i>
+        <i class="fl" data-art="st-gift" style="--x:90%;--y:58%;--w:3.3vw;--r:-8deg;--d:-3.5s"></i>
+      </div>
+
       <div class="home">
-        <p class="eyebrow">Mừng thôi nôi</p>
-        <h1 class="baby-name" data-bind="babyName">Na</h1>
-        <p class="home-sub">Mùa Giáng sinh ấm áp · Mời các bạn nhỏ cùng chơi</p>
+        <p class="eyebrow"><i class="eb-spark"></i>Mừng thôi nôi<i class="eb-spark"></i></p>
+        <h1 class="baby-name" data-text="Na"><span data-bind="babyName">Na</span>
+          <i class="nm-doodle d1" data-art="doodle-spark" aria-hidden="true"></i>
+          <i class="nm-doodle d2" data-art="doodle-spark-cream" aria-hidden="true"></i>
+          <i class="nm-doodle d3" data-art="doodle-heart" aria-hidden="true"></i>
+          <i class="nm-doodle d4" data-art="doodle-spark" aria-hidden="true"></i>
+        </h1>
+        <p class="home-sub"><i class="sub-flake" data-art="doodle-flake" aria-hidden="true"></i>Mùa Giáng sinh ấm áp · Mời các bạn nhỏ cùng chơi<i class="sub-flake" data-art="doodle-flake" aria-hidden="true"></i></p>
+
         <div class="game-cards">
           <a class="game-card" href="#photobooth" data-key="1">
+            <span class="card-sheet" aria-hidden="true"></span>
+            <div class="card-frame">
+              <div class="card-paper">
+                <div class="card-art" data-art="card-photobooth"></div>
+                <h2>Con của tương lai</h2>
+                <p>Chọn nghề, lật thẻ ước mơ của bé</p>
+              </div>
+              <i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            </div>
+            <span class="tape" aria-hidden="true"></span>
             <span class="card-num">1</span>
-            <div class="card-art" data-art="card-photobooth"></div>
-            <h2>Con của tương lai</h2>
-            <p>Chọn nghề, lật thẻ ước mơ của bé</p>
           </a>
           <a class="game-card" href="#tree" data-key="2">
+            <span class="card-sheet" aria-hidden="true"></span>
+            <div class="card-frame">
+              <div class="card-paper">
+                <div class="card-art" data-art="card-tree"></div>
+                <h2>Cùng trang trí cây thông</h2>
+                <p>Treo một món đồ, nhận một hộp quà</p>
+              </div>
+              <i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            </div>
+            <span class="tape" aria-hidden="true"></span>
             <span class="card-num">2</span>
-            <div class="card-art" data-art="card-tree"></div>
-            <h2>Cùng trang trí cây thông</h2>
-            <p>Treo một món đồ, nhận một hộp quà</p>
           </a>
           <a class="game-card" href="#oven" data-key="3">
+            <span class="card-sheet" aria-hidden="true"></span>
+            <div class="card-frame">
+              <div class="card-paper">
+                <div class="card-art" data-art="card-oven"></div>
+                <h2>Lò nướng bánh gừng may mắn</h2>
+                <p>Bốc thăm trúng thưởng cho khách mời</p>
+              </div>
+              <i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            </div>
+            <span class="tape" aria-hidden="true"></span>
             <span class="card-num">3</span>
-            <div class="card-art" data-art="card-oven"></div>
-            <h2>Lò nướng bánh gừng may mắn</h2>
-            <p>Bốc thăm trúng thưởng cho khách mời</p>
           </a>
         </div>
         <p class="kbd-hint"><kbd>Space</kbd> bắt đầu · <kbd>Esc</kbd> về trang chính · <kbd>F</kbd> toàn màn hình · <kbd>M</kbd> nhạc</p>

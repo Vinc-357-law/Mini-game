@@ -22,6 +22,8 @@ const inited = new Set();
 
 function bindHome() {
   $$('[data-bind="babyName"]').forEach((n) => { n.textContent = store.babyName(); });
+  // lớp viền trắng phía sau tên bé (kiểu chữ sticker) lấy chữ từ data-text
+  $$('.baby-name').forEach((n) => { n.dataset.text = store.babyName(); });
   document.title = `Thôi nôi bé ${store.babyName()} · Mini game Giáng sinh`;
 }
 

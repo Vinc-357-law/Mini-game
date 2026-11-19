@@ -1,0 +1,251 @@
+/* =========================================================
+   Trang chính — phong cách "sticker / sổ tay" dễ thương
+   Bảng màu giữ nguyên: xanh lá thông, đỏ nhung, kem, vàng nến.
+   Viền trắng kiểu sticker: bộ lọc SVG #sticker (khai báo trong index.html).
+   ========================================================= */
+#screen-home { overflow: hidden; }
+
+/* ---------- Trang trí: con vật ló ra ở mép + sticker bay lơ lửng ---------- */
+.home-deco { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.home-deco [data-art] svg { display: block; width: 100%; height: 100%; }
+.mascot svg, .fl svg { filter: url(#sticker) drop-shadow(0 7px 9px rgba(0, 0, 0, .32)); }
+
+.mascot { position: absolute; will-change: transform; }
+/* Mèo ló ra từ mép phải: phần thân bị cắt nằm ngoài màn hình */
+.m-cat {
+  right: -3.4vw; top: 29%; width: clamp(120px, 12.5vw, 230px); aspect-ratio: 240 / 250;
+  transform-origin: 100% 60%; animation: catPeek 9s ease-in-out infinite;
+}
+@keyframes catPeek {
+  0%, 100% { transform: translateX(0) rotate(-5deg); }
+  50% { transform: translateX(-12px) rotate(-1deg); }
+}
+/* Tuần lộc ló lên từ góc dưới bên trái */
+.m-deer {
+  left: -1.6vw; bottom: -3vh; width: clamp(140px, 14vw, 260px); aspect-ratio: 260 / 270;
+  transform-origin: 50% 100%; animation: deerNod 7s ease-in-out infinite;
+}
+@keyframes deerNod { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(-2deg); } }
+/* Người tuyết ló lên từ góc dưới bên phải */
+.m-snow {
+  right: -.8vw; bottom: -6vh; width: clamp(130px, 12vw, 230px); aspect-ratio: 240 / 280;
+  transform-origin: 50% 100%; animation: snowSway 8s ease-in-out infinite;
+}
+@keyframes snowSway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(2deg) translateY(-6px); } }
+
+/* Sticker nhỏ: vị trí/kích thước/góc nghiêng đặt bằng biến trong index.html */
+.fl {
+  position: absolute; left: var(--x); top: var(--y); display: block;
+  width: clamp(34px, var(--w, 3vw), 76px); aspect-ratio: 1;
+  rotate: var(--r, 0deg); will-change: transform;
+  animation: floaty 7s ease-in-out var(--d, 0s) infinite alternate;
+}
+@keyframes floaty { from { translate: 0 0; } to { translate: 0 -12px; } }
+
+/* ---------- Khối giữa ---------- */
+.home {
+  position: relative; z-index: 2; margin: auto;
+  width: min(1180px, calc(100vw - 300px));
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+
+/* Ruy băng "Mừng thôi nôi": tấm nhãn kem có đường khâu, đuôi ruy băng đỏ hai bên */
+.home .eyebrow {
+  position: relative; display: inline-flex; align-items: center; gap: .55em;
+  margin: 0; padding: .34em 1.5em .2em;
+  font-family: var(--font-round); font-weight: 800; font-size: clamp(.95rem, 2.3vh, 1.3rem);
+  letter-spacing: .16em; text-transform: uppercase; color: var(--berry-deep);
+  background: var(--cream); border-radius: 12px;
+  box-shadow: 0 0 0 4px #fff, 0 9px 16px rgba(0, 0, 0, .32);
+  outline: 2px dashed rgba(184, 50, 58, .5); outline-offset: -6px;
+}
+.home .eyebrow::before, .home .eyebrow::after {
+  content: ''; position: absolute; z-index: -1; top: 38%; width: 2.6em; height: 82%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'%3E%3Cpath d='M4 4H56V36H4L18 20Z' fill='%23b8323a' stroke='%23fff' stroke-width='4' stroke-linejoin='round'/%3E%3Cpath d='M46 6V34' stroke='%238c1f2a' stroke-width='3'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.home .eyebrow::before { left: -1.9em; }
+.home .eyebrow::after { right: -1.9em; transform: scaleX(-1); }
+.eb-spark {
+  width: .72em; height: .72em; flex: none; background: var(--gold-deep);
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+}
+
+/* Tên bé: chữ tròn mập tô vàng, viền nâu đỏ mảnh + viền trắng dày + bóng đỏ (như chữ sticker).
+   3 lớp chồng nhau: ::before (viền trắng + bóng) → ::after (viền đỏ) → chữ vàng ở trên cùng.
+   Viền vẽ ở lớp dưới để chữ vàng che các nét chồng bên trong font. */
+.baby-name {
+  position: relative; isolation: isolate; margin: .06em 0 0; padding: 0 .16em;
+  font-family: var(--font-round); font-weight: 800; line-height: 1.12; letter-spacing: .01em;
+  font-size: clamp(4rem, min(14vw, 18.5vh), 10.5rem);
+  color: #fff;
+}
+.baby-name::before, .baby-name::after {
+  content: attr(data-text); position: absolute; inset: 0; padding: inherit; pointer-events: none;
+}
+.baby-name::before {
+  z-index: 0; color: #fff; -webkit-text-stroke: .15em #fff;
+  filter: drop-shadow(0 .05em 0 var(--berry-deep)) drop-shadow(0 .1em .1em rgba(0, 0, 0, .35));
+}
+.baby-name::after { z-index: 1; color: var(--berry-deep); -webkit-text-stroke: .07em var(--berry-deep); }
+.baby-name > span {
+  position: relative; z-index: 2;
+  background: linear-gradient(180deg, #fff3cc 0%, #ffd56e 40%, #f6a83a 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.nm-doodle { position: absolute; display: block; width: .3em; aspect-ratio: 1; pointer-events: none; animation: twinkleSoft 3.2s ease-in-out infinite alternate; }
+.nm-doodle svg { display: block; width: 100%; height: 100%; }
+.nm-doodle.d1 { left: -.28em; top: .18em; }
+.nm-doodle.d2 { right: -.24em; top: .02em; width: .2em; animation-delay: -1.2s; }
+.nm-doodle.d3 { right: -.2em; bottom: .14em; width: .2em; animation-delay: -2s; }
+.nm-doodle.d4 { left: -.1em; bottom: .08em; width: .14em; animation-delay: -.6s; }
+@keyframes twinkleSoft { from { opacity: .55; scale: .88; } to { opacity: 1; scale: 1.05; } }
+
+/* Dòng phụ viết tay trên vệt cọ đỏ */
+.home-sub {
+  position: relative; display: inline-flex; align-items: center; gap: .6em;
+  margin: clamp(0px, .4vh, 6px) 0 clamp(14px, 2.8vh, 34px); padding: .52em 2.1em .62em;
+  font-family: var(--font-hand); font-weight: 700; font-size: clamp(.95rem, 2.3vh, 1.3rem);
+  color: var(--cream); text-shadow: 0 1px 0 rgba(90, 18, 25, .55); text-wrap: balance;
+}
+.home-sub::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, #c8434a, var(--berry-deep));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 70' preserveAspectRatio='none'%3E%3Cpath d='M14 30C24 14 80 12 150 13C230 9 330 6 380 14C396 18 398 30 388 36C396 44 392 56 370 58C300 64 200 62 120 63C60 64 24 62 12 54C2 46 6 38 14 30Z'/%3E%3Cpath d='M386 26L399 24M384 46L399 50M10 40L1 43' stroke='%23000' stroke-width='5' stroke-linecap='round' stroke-opacity='.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 70' preserveAspectRatio='none'%3E%3Cpath d='M14 30C24 14 80 12 150 13C230 9 330 6 380 14C396 18 398 30 388 36C396 44 392 56 370 58C300 64 200 62 120 63C60 64 24 62 12 54C2 46 6 38 14 30Z'/%3E%3Cpath d='M386 26L399 24M384 46L399 50M10 40L1 43' stroke='%23000' stroke-width='5' stroke-linecap='round' stroke-opacity='.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.sub-flake { display: block; width: 1em; height: 1em; flex: none; opacity: .9; }
+.sub-flake svg { display: block; width: 100%; height: 100%; }
+
+/* ---------- 3 thẻ game: trang sổ có bìa đỏ, góc bọc vàng, dán băng dính ---------- */
+.game-cards {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(26px, 3.2vw, 56px); width: 100%; padding-top: 12px;
+}
+.game-card {
+  --tilt: -2deg; --tape: rgba(184, 50, 58, .62); --swatch: rgba(184, 50, 58, .2);
+  position: relative; display: flex; flex-direction: column; color: var(--ink); text-decoration: none; cursor: pointer;
+  rotate: var(--tilt); transition: rotate .4s cubic-bezier(.2, .8, .2, 1), translate .4s cubic-bezier(.2, .8, .2, 1), scale .4s cubic-bezier(.2, .8, .2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.game-card:nth-child(2) { --tilt: 1.6deg; --tape: rgba(47, 125, 91, .62); --swatch: rgba(47, 125, 91, .22); }
+.game-card:nth-child(3) { --tilt: -1.2deg; --tape: rgba(217, 164, 65, .75); --swatch: rgba(242, 196, 109, .4); }
+.game-card:hover, .game-card:focus-visible { rotate: 0deg; translate: 0 -8px; scale: 1.025; outline: none; }
+.game-card:active { translate: 0 -2px; scale: .99; }
+.game-card:focus-visible .card-frame { box-shadow: 0 0 0 4px #fff, 0 0 0 8px var(--gold), 0 16px 30px rgba(0, 0, 0, .4); }
+
+/* tờ giấy xếp lệch phía sau */
+.card-sheet {
+  position: absolute; inset: 10px -8px -10px 12px; border-radius: 18px;
+  background: linear-gradient(180deg, #f6e8cc, #e9d4ad); rotate: 3.5deg;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, .35);
+}
+/* bìa đỏ nhung */
+.card-frame {
+  position: relative; flex: 1; display: flex; padding: 9px; border-radius: 20px;
+  background: linear-gradient(160deg, #cc4b52, var(--berry) 45%, var(--berry-deep));
+  box-shadow: 0 16px 30px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .25), inset 0 -2px 0 rgba(0, 0, 0, .2);
+  transition: box-shadow .3s;
+}
+/* trang giấy kem kẻ ô mờ + đường chỉ khâu */
+.card-paper {
+  position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: clamp(8px, 1.4vh, 16px) 16px clamp(12px, 2.2vh, 22px); border-radius: 13px;
+  background:
+    linear-gradient(rgba(47, 125, 91, .07) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(90deg, rgba(47, 125, 91, .07) 1px, transparent 1px) 0 0 / 22px 22px,
+    radial-gradient(ellipse at 50% 30%, #fffaf0, var(--cream) 70%);
+  outline: 2px dashed rgba(158, 38, 48, .42); outline-offset: -8px;
+}
+/* góc bọc vàng (góc trên-trái có sticker số thứ tự) */
+.corner {
+  position: absolute; z-index: 2; width: 30px; height: 30px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M3 37V13C3 7 7 3 13 3H37V13H19C16 13 13 16 13 19V37Z' fill='%23f2c46d' stroke='%233b2414' stroke-width='2.5' stroke-linejoin='round'/%3E%3Cpath d='M7 31V14C7 10 10 7 14 7H31' fill='none' stroke='%23fff6d6' stroke-width='2' stroke-linecap='round' opacity='.85'/%3E%3Ccircle cx='9.5' cy='9.5' r='2.4' fill='%23b8862f'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.corner.tr { top: -4px; right: -4px; transform: scaleX(-1); }
+.corner.bl { bottom: -4px; left: -4px; transform: scaleY(-1); }
+.corner.br { bottom: -4px; right: -4px; transform: scale(-1, -1); }
+
+/* băng dính washi dán mép trên */
+.tape {
+  position: absolute; z-index: 3; top: -14px; left: 50%; width: 36%; height: 28px;
+  translate: -50% 0; rotate: -3deg;
+  background: repeating-linear-gradient(-45deg, var(--tape) 0 9px, rgba(255, 253, 245, .6) 9px 18px);
+  clip-path: polygon(3% 0, 97% 0, 100% 16%, 97% 33%, 100% 50%, 97% 67%, 100% 84%, 97% 100%, 3% 100%, 0 84%, 3% 67%, 0 50%, 3% 33%, 0 16%);
+}
+.game-card:nth-child(2) .tape { rotate: 2deg; }
+
+/* sticker số thứ tự */
+.card-num {
+  position: absolute; z-index: 4; top: -16px; left: -13px; width: 50px; height: 50px; border-radius: 50%;
+  display: grid; place-items: center; padding-top: 4px;
+  font-family: var(--font-round); font-weight: 800; font-size: 1.6rem; line-height: 1;
+  color: var(--cream); background: radial-gradient(circle at 35% 30%, #dc5a60, var(--berry-deep) 75%);
+  border: 4px solid #fff; box-shadow: 0 5px 10px rgba(0, 0, 0, .32); rotate: -10deg;
+}
+.game-card:nth-child(2) .card-num { background: radial-gradient(circle at 35% 30%, #3f9a70, var(--pine-600) 75%); rotate: 8deg; }
+.game-card:nth-child(3) .card-num { background: radial-gradient(circle at 35% 30%, #f6c25c, #c98a2a 75%); color: #5a3412; rotate: -6deg; }
+
+/* hình minh hoạ: sticker viền trắng trên vệt màu loang */
+.card-art { position: relative; width: 100%; height: clamp(100px, 21.5vh, 260px); display: grid; place-items: center; }
+.card-art::before {
+  content: ''; position: absolute; inset: 7% 1% 3%; background: var(--swatch);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 140' preserveAspectRatio='none'%3E%3Cpath d='M30 22C62 4 140 2 172 20C198 36 200 92 182 116C160 140 70 142 34 124C6 110-2 46 30 22Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 140' preserveAspectRatio='none'%3E%3Cpath d='M30 22C62 4 140 2 172 20C198 36 200 92 182 116C160 140 70 142 34 124C6 110-2 46 30 22Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.card-art svg { position: relative; width: 92%; height: 100%; filter: url(#sticker) drop-shadow(0 6px 6px rgba(70, 30, 10, .28)); }
+
+.game-card h2 {
+  margin: clamp(2px, .6vh, 8px) 0 2px;
+  font-family: var(--font-round); font-weight: 800; line-height: 1.12;
+  font-size: clamp(1.15rem, min(1.8vw, 3.2vh), 1.75rem); color: var(--berry-deep);
+  text-wrap: balance;
+}
+.game-card p {
+  margin: 0; font-family: var(--font-hand); font-weight: 600;
+  font-size: clamp(.9rem, min(1.15vw, 2.1vh), 1.1rem); color: #7a5a40; text-wrap: balance;
+}
+
+/* ---------- Mẩu giấy ghi phím tắt (dán băng dính chéo) ---------- */
+.kbd-hint {
+  position: relative; margin: clamp(14px, 3vh, 40px) 0 0; padding: .55em 1.5em .5em;
+  font-family: var(--font-hand); font-weight: 600; font-size: clamp(.82rem, 1.9vh, 1rem); color: #6e5440;
+  background: var(--cream); border-radius: 10px; rotate: -1deg;
+  box-shadow: 0 0 0 3px #fff, 0 8px 18px rgba(0, 0, 0, .3);
+}
+.kbd-hint::before {
+  content: ''; position: absolute; left: -18px; top: 50%; width: 48px; height: 20px;
+  translate: 0 -50%; rotate: -52deg;
+  background: repeating-linear-gradient(-45deg, rgba(47, 125, 91, .62) 0 7px, rgba(255, 253, 245, .6) 7px 14px);
+  clip-path: polygon(4% 0, 96% 0, 100% 25%, 96% 50%, 100% 75%, 96% 100%, 4% 100%, 0 75%, 4% 50%, 0 25%);
+}
+.home kbd {
+  font-family: var(--font-round); font-weight: 800; font-size: .88em; line-height: 1.2;
+  padding: .06em .55em 0; color: var(--berry-deep); background: #fff;
+  border: 2px solid #e8d6b6; border-bottom-width: 4px; border-radius: 8px;
+}
+
+/* ---------- Nút tròn trên thanh trên cùng: kiểu viên kẹo kem, bấm thấy lún ---------- */
+.topbar .icon-btn {
+  background: var(--cream); border: 3px solid #fff; backdrop-filter: none;
+  box-shadow: 0 4px 0 #cdb48a, 0 8px 14px rgba(0, 0, 0, .3);
+  transition: transform .2s, box-shadow .2s, background .2s;
+}
+.topbar .icon-btn .ico { stroke: var(--berry-deep); stroke-width: 2.2; }
+.topbar .icon-btn:hover { background: #fff8ea; border-color: #fff; transform: translateY(-2px); }
+.topbar .icon-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #cdb48a, 0 3px 8px rgba(0, 0, 0, .3); }
+.topbar .icon-btn[aria-pressed="true"] { background: var(--berry); border-color: #fff; box-shadow: 0 4px 0 var(--berry-dark), 0 8px 14px rgba(0, 0, 0, .3); }
+.topbar .icon-btn[aria-pressed="true"] .ico { stroke: var(--cream); }
+
+/* ---------- Màn hình nhỏ ---------- */
+@media (max-width: 1200px) {
+  .home { width: min(1180px, calc(100vw - 120px)); }
+  .m-cat, .fl:nth-of-type(n+4) { display: none; }
+}
+@media (max-width: 900px) {
+  #screen-home { overflow-x: hidden; overflow-y: auto; }
+  .home { width: 100%; margin: 4px auto 0; padding-bottom: 40px; }
+  .home-deco { display: none; }
+  .game-cards { grid-template-columns: 1fr; max-width: 420px; gap: 40px; padding-top: 18px; }
+  .card-art { height: 200px; }
+  .home-sub { padding-left: 1.4em; padding-right: 1.4em; }
+}

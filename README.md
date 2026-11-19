@@ -92,7 +92,7 @@ node tools/build.mjs
 
 ```
 index.html          Trang duy nhất (5 màn hình)
-css/                main.css (chung, bảng màu) + game1/2/3.css
+css/                main.css (chung, bảng màu) + home.css (trang chính kiểu sticker) + game1/2/3.css
 js/
   app.js            Điều hướng, phím tắt, nhạc, toàn màn hình
   storage.js        Lưu cài đặt + tiến độ (localStorage), đọc danh sách
@@ -107,6 +107,6 @@ js/
   zip.js, ui.js     Tiện ích
   app.bundle.js     (tự tạo) bản gộp mà index.html chạy
 tools/build.mjs     Gộp các file JS thành js/app.bundle.js
-assets/             font, favicon, (nhạc nền tuỳ biến)
+assets/             font (Be Vietnam Pro, Dancing Script, Baloo 2, Mali), favicon, (nhạc nền tuỳ biến)
 plan.md             Kế hoạch & nhật ký tiến độ
 ```

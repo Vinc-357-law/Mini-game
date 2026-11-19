@@ -292,7 +292,7 @@ const OUTFITS = {
     <circle cx="150" cy="466" r="6" fill="#fdf6e7"/><circle cx="200" cy="474" r="6" fill="#fdf6e7"/><circle cx="250" cy="466" r="6" fill="#fdf6e7"/>`],
 };
 
-function kidBody(key, gender) {
+function kidBody(key, gender, cute = false) {
   const [coat, sleeve, detail] = OUTFITS[key] || OUTFITS.generic;
   const girl = gender === 'girl';
   const hairBack = girl ? `
@@ -321,17 +321,33 @@ function kidBody(key, gender) {
     <circle cx="200" cy="222" r="100" fill="${SKIN}" stroke="${O}" stroke-width="5"/>
     <path d="${fringe}" fill="${HAIR}" stroke="${O}" stroke-width="4" stroke-linejoin="round"/>
     ${pigtails}
+    ${cute ? cuteFace(girl) : CLASSIC_FACE}`;
+}
+
+const CLASSIC_FACE = `
     <ellipse cx="166" cy="222" rx="9" ry="12" fill="${O}"/><ellipse cx="234" cy="222" rx="9" ry="12" fill="${O}"/>
     <circle cx="169" cy="217" r="3.2" fill="#fff"/><circle cx="237" cy="217" r="3.2" fill="#fff"/>
     <ellipse cx="146" cy="254" rx="17" ry="10" fill="#f29a9a" opacity=".6"/><ellipse cx="254" cy="254" rx="17" ry="10" fill="#f29a9a" opacity=".6"/>
     <path d="M178 262 Q200 284 222 262" stroke="${O}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+
+// Mặt kiểu chibi: mắt to long lanh (2 đốm sáng), má hồng có vạch, miệng cười há
+function cuteFace(girl) {
+  const eye = (x) => `<ellipse cx="${x}" cy="226" rx="14" ry="17" fill="${O}"/>
+    <circle cx="${x + 5}" cy="219" r="5.6" fill="#fff"/><circle cx="${x - 5}" cy="233" r="2.6" fill="#fff"/>`;
+  const lashes = girl
+    ? `<path d="M151 216 l-9 -7 M150 225 l-11 -2 M249 216 l9 -7 M250 225 l11 -2" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>` : '';
+  return `${eye(164)}${eye(236)}${lashes}
+    <ellipse cx="140" cy="258" rx="19" ry="11" fill="#f29a9a" opacity=".7"/><ellipse cx="260" cy="258" rx="19" ry="11" fill="#f29a9a" opacity=".7"/>
+    <path d="M128 262 l7 -9 M138 264 l7 -9 M148 263 l7 -9 M246 263 l7 -9 M256 264 l7 -9 M266 262 l7 -9" stroke="#e06f70" stroke-width="3" stroke-linecap="round"/>
+    <path d="M184 262 Q200 286 216 262 Z" fill="#8a2f28" stroke="${O}" stroke-width="4.5" stroke-linejoin="round"/>
+    <path d="M191 271 Q200 281 209 271 Q200 266 191 271 Z" fill="#f08a80"/>`;
 }
 
-export function kidSVG(key, gender = 'boy', w = '100%', h = '100%') {
+export function kidSVG(key, gender = 'boy', w = '100%', h = '100%', cute = false) {
   const hat = HATS[key] || HATS.generic;
   const prop = PROPS[key] || PROPS.generic;
   return svg('0 0 460 540', w, h, `<g transform="translate(0 40)">
-    ${kidBody(key, gender)}
+    ${kidBody(key, gender, cute)}
     <svg x="75" y="-8" width="250" height="167" viewBox="0 0 300 200">${hat}</svg>
     <svg x="292" y="296" width="150" height="150" viewBox="0 0 200 200">${prop}</svg>
     <circle cx="338" cy="410" r="20" fill="${SKIN}" stroke="${O}" stroke-width="4.5"/>
@@ -488,9 +504,152 @@ export function gingerSVG(w = '100%', h = '100%') {
 }
 
 // =========================================================
+// TRANG CHÍNH: con vật ló ra ở mép màn hình (mèo đội mũ Noel,
+// tuần lộc, người tuyết), sticker nhỏ, hoạ tiết vẽ tay
+// =========================================================
+const FUR = '#fffaf2', GINGER = '#f0a54a', PINK = '#f4a7a3';
+const eyeBig = (x, y, rx = 11, ry = 13) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${O}"/>
+  <circle cx="${x + rx * 0.38}" cy="${y - ry * 0.38}" r="${rx * 0.4}" fill="#fff"/><circle cx="${x - rx * 0.36}" cy="${y + ry * 0.38}" r="${rx * 0.18}" fill="#fff"/>`;
+const blush = (x, y, rx = 13, ry = 7.5, c = PINK) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${c}" opacity=".75"/>`;
+
+function mascotSVG(kind) {
+  if (kind === 'cat') {
+    // Mèo trắng đốm cam đội mũ Noel, ló ra từ mép phải (thân khuất ngoài màn hình)
+    return svg('0 0 240 250', '100%', '100%', `
+      <defs><clipPath id="catHeadClip"><ellipse cx="112" cy="132" rx="84" ry="70"/></clipPath></defs>
+      ${tube('M206 176 Q252 132 222 92 Q214 82 204 90', FUR, 13)}
+      <path d="M233 118 Q238 104 228 96" stroke="${GINGER}" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <path d="M118 160 Q190 128 250 150 L250 238 Q184 246 124 234 Q100 214 118 160 Z" fill="${FUR}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M196 142 Q232 138 250 152 L250 214 Q222 196 196 142 Z" fill="${GINGER}"/>
+      <path d="M42 110 L36 44 Q38 32 50 36 L106 76 Z" fill="${FUR}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M52 94 L50 54 L86 78 Z" fill="${PINK}"/>
+      <ellipse cx="112" cy="132" rx="84" ry="70" fill="${FUR}" stroke="${O}" stroke-width="5"/>
+      <g clip-path="url(#catHeadClip)"><path d="M24 124 Q40 70 104 60 Q88 92 98 120 Q60 108 24 124 Z" fill="${GINGER}"/></g>
+      <path d="M92 74 Q118 10 186 16 Q226 22 232 70 Q208 50 184 56 Q176 72 172 86 Z" fill="#d6423a" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M118 50 Q142 26 178 28" stroke="#ec6a5f" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M80 92 Q130 58 190 80 Q196 92 188 100 Q130 78 86 108 Q74 102 80 92 Z" fill="#fffdf8" stroke="${O}" stroke-width="4.5" stroke-linejoin="round"/>
+      <circle cx="230" cy="76" r="15" fill="#fffdf8" stroke="${O}" stroke-width="4.5"/>
+      ${eyeBig(80, 138)}${eyeBig(140, 140)}
+      ${blush(58, 160)}${blush(162, 162)}
+      <path d="M110 152 L103 146 H117 Z" fill="#f08a80" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M98 158 Q104 166 110 158 Q116 166 122 158" stroke="${O}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M40 148 L14 142 M40 156 L12 158 M184 150 L210 144 M184 158 L212 160" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="74" cy="206" rx="25" ry="17" fill="${FUR}" stroke="${O}" stroke-width="5"/>
+      <path d="M66 200 v10 M80 200 v10" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="136" cy="210" rx="25" ry="17" fill="${FUR}" stroke="${O}" stroke-width="5"/>
+      <path d="M128 204 v10 M142 204 v10" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`);
+  }
+  if (kind === 'deer') {
+    // Tuần lộc mũi đỏ quàng khăn xanh, ló lên từ góc dưới bên trái
+    const antlers = ['M98 78 Q86 44 62 20', 'M84 54 Q62 52 46 36', 'M76 40 Q80 24 92 14',
+      'M162 78 Q174 44 198 20', 'M176 54 Q198 52 214 36', 'M184 40 Q180 24 168 14'];
+    return svg('0 0 260 270', '100%', '100%', `
+      <defs><clipPath id="deerScarfClip"><path d="M72 222 Q130 248 188 222 L194 252 Q130 280 66 252 Z"/></clipPath></defs>
+      <path d="${antlers.join(' ')}" stroke="${O}" stroke-width="18" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${antlers.join(' ')}" stroke="#e3b47c" stroke-width="11" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M68 104 Q26 88 18 110 Q30 130 74 122 Z" fill="#b07042" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M62 109 Q38 102 31 111 Q41 120 63 117 Z" fill="#f4b39a"/>
+      <path d="M192 104 Q234 88 242 110 Q230 130 186 122 Z" fill="#b07042" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M198 109 Q222 102 229 111 Q219 120 197 117 Z" fill="#f4b39a"/>
+      <path d="M86 214 Q130 236 174 214 L190 280 L70 280 Z" fill="#b07042" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M130 64 C186 64 204 106 200 148 C196 198 166 222 130 222 C94 222 64 198 60 148 C56 106 74 64 130 64 Z" fill="#b07042" stroke="${O}" stroke-width="5"/>
+      <path d="M110 74 Q120 56 130 70 Q140 54 150 74" fill="#94572f" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+      <ellipse cx="130" cy="186" rx="50" ry="34" fill="#f1d2ad" stroke="${O}" stroke-width="4.5"/>
+      <ellipse cx="130" cy="168" rx="22" ry="17" fill="#d6423a" stroke="${O}" stroke-width="4.5"/>
+      <ellipse cx="123" cy="162" rx="7" ry="4.5" fill="#fff" opacity=".8"/>
+      <path d="M118 198 Q130 208 142 198" stroke="${O}" stroke-width="4" fill="none" stroke-linecap="round"/>
+      ${eyeBig(100, 132, 12, 14)}${eyeBig(160, 132, 12, 14)}
+      ${blush(80, 162, 13, 8, '#f29a9a')}${blush(180, 162, 13, 8, '#f29a9a')}
+      <path d="M72 222 Q130 248 188 222 L194 252 Q130 280 66 252 Z" fill="#2f7d5b"/>
+      <g clip-path="url(#deerScarfClip)"><path d="M88 220 L82 270 M114 226 L110 280 M146 226 L150 280 M172 220 L178 270" stroke="#fdf3df" stroke-width="7"/></g>
+      <path d="M72 222 Q130 248 188 222 L194 252 Q130 280 66 252 Z" fill="none" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>`);
+  }
+  // Người tuyết đội mũ len đỏ, vẫy tay, ló lên từ góc dưới bên phải
+  return svg('0 0 240 280', '100%', '100%', `
+    <defs>
+      <clipPath id="snowBodyClip"><circle cx="120" cy="268" r="94"/></clipPath>
+      <clipPath id="snowScarfClip"><path d="M62 172 Q120 198 178 172 L182 194 Q120 222 58 194 Z"/></clipPath>
+    </defs>
+    ${tube('M194 214 Q220 178 232 146 M222 172 L240 166 M229 156 Q226 140 238 132', '#7a4e2c', 7)}
+    ${tube('M46 216 Q26 202 12 188 M26 202 L8 206', '#7a4e2c', 7)}
+    <circle cx="120" cy="268" r="94" fill="#fdfdfd" stroke="${O}" stroke-width="5"/>
+    <g clip-path="url(#snowBodyClip)"><path d="M46 236 Q56 304 112 336" stroke="#dbe6ef" stroke-width="20" fill="none"/></g>
+    <circle cx="120" cy="226" r="7" fill="${O}"/><circle cx="120" cy="254" r="7" fill="${O}"/>
+    <path d="M142 194 L150 240 L174 234 L162 190 Z" fill="#d6423a" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M62 172 Q120 198 178 172 L182 194 Q120 222 58 194 Z" fill="#d6423a"/>
+    <g clip-path="url(#snowScarfClip)"><path d="M86 170 L84 210 M154 170 L156 210" stroke="#2f7d5b" stroke-width="7"/></g>
+    <path d="M62 172 Q120 198 178 172 L182 194 Q120 222 58 194 Z" fill="none" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="120" cy="118" r="62" fill="#fdfdfd" stroke="${O}" stroke-width="5"/>
+    <path d="M76 152 Q100 178 144 174" stroke="#dbe6ef" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M62 102 Q64 42 120 38 Q176 42 178 102 Z" fill="#d6423a" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M92 54 Q96 78 94 100 M120 44 V100 M148 54 Q144 78 146 100" stroke="#b8323a" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <rect x="56" y="90" width="128" height="26" rx="13" fill="#fdf3df" stroke="${O}" stroke-width="5"/>
+    <path d="M76 97 v12 M96 97 v12 M116 97 v12 M136 97 v12 M156 97 v12" stroke="#e2d2b2" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="120" cy="32" r="17" fill="#fdf3df" stroke="${O}" stroke-width="5"/>
+    ${eyeBig(98, 136, 9, 11)}${eyeBig(142, 136, 9, 11)}
+    ${blush(78, 156, 12, 7, '#f29a9a')}${blush(162, 156, 12, 7, '#f29a9a')}
+    <path d="M120 148 L80 158 L120 160 Z" fill="#ff8a3d" stroke="${O}" stroke-width="3.5" stroke-linejoin="round"/>
+    <path d="M104 152 l2 5 M94 155 l2 4" stroke="#c9601f" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="102" cy="170" r="3.6" fill="${O}"/><circle cx="112" cy="175" r="3.6" fill="${O}"/><circle cx="124" cy="175" r="3.6" fill="${O}"/><circle cx="134" cy="170" r="3.6" fill="${O}"/>`);
+}
+
+// Sticker nhỏ bay lơ lửng quanh trang (viền trắng do CSS filter #sticker tạo)
+function stickerSVG(kind) {
+  if (kind === 'holly') {
+    return svg('0 0 120 100', '100%', '100%', `${holly(58, 60, -158, 0.62)}${holly(62, 60, -22, 0.62)}
+      <circle cx="55" cy="54" r="9" fill="#d6423a" stroke="#7a1f1a" stroke-width="3"/>
+      <circle cx="69" cy="58" r="8.5" fill="#d6423a" stroke="#7a1f1a" stroke-width="3"/>
+      <circle cx="60" cy="68" r="8" fill="#d6423a" stroke="#7a1f1a" stroke-width="3"/>
+      <circle cx="52" cy="50" r="3" fill="#fff" opacity=".7"/>`);
+  }
+  if (kind === 'star') {
+    return svg('0 0 100 100', '100%', '100%', `<path d="${starPath(50, 54, 44, 20)}" fill="#ffd25e" stroke="${O}" stroke-width="4.5" stroke-linejoin="round"/>
+      <path d="M38 38 L44 50" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".75"/>`);
+  }
+  if (kind === 'heart') {
+    return svg('0 0 100 92', '100%', '100%', `<path d="M50 84 C20 64 6 46 10 28 C14 12 36 6 50 24 C64 6 86 12 90 28 C94 46 80 64 50 84 Z" fill="#d6423a" stroke="${O}" stroke-width="4.5" stroke-linejoin="round"/>
+      <ellipse cx="30" cy="30" rx="6" ry="10" transform="rotate(-35 30 30)" fill="#fff" opacity=".6"/>`);
+  }
+  if (kind === 'gift') return svg('0 0 100 100', '100%', '100%', giftInner('#2f7d5b', '#f2c46d', 1, 1.4));
+  if (kind === 'snowflake') {
+    const d = [0, 60, 120].map((a) => {
+      const r = (deg, len) => [50 + len * Math.sin((deg * Math.PI) / 180), 50 - len * Math.cos((deg * Math.PI) / 180)];
+      const seg = (deg) => {
+        const [x1, y1] = r(deg, 40), [x2, y2] = r(deg + 180, 40);
+        const [a1, b1] = r(deg, 26), [a2, b2] = r(deg - 26, 37), [a3, b3] = r(deg + 26, 37);
+        const [c1, e1] = r(deg + 180, 26), [c2, e2] = r(deg + 154, 37), [c3, e3] = r(deg + 206, 37);
+        return `M${x1} ${y1} L${x2} ${y2} M${a2} ${b2} L${a1} ${b1} L${a3} ${b3} M${c2} ${e2} L${c1} ${e1} L${c3} ${e3}`;
+      };
+      return seg(a);
+    }).join(' ').replace(/(\d+\.\d)\d+/g, '$1');
+    return svg('0 0 100 100', '100%', '100%', `<path d="${d}" stroke="${O}" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="${d}" stroke="#eaf4fb" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`);
+  }
+  if (kind === 'cookie') return gingerSVG();
+  const orn = { candy: 'candy', bell: 'bell', mitten: 'mitten' }[kind] || 'red-ball';
+  return ornamentSVG(orn);
+}
+
+// Hoạ tiết vẽ tay (nét phẳng, không viền sticker)
+function doodleSVG(kind) {
+  if (kind === 'heart') {
+    return svg('0 0 100 92', '100%', '100%', `<path d="M50 80 C22 62 10 46 14 30 C18 16 38 12 50 28 C62 12 82 16 86 30 C90 46 78 62 50 80 Z" fill="none" stroke="#ff9a9a" stroke-width="8" stroke-linejoin="round"/>`);
+  }
+  if (kind === 'flake') {
+    return svg('0 0 100 100', '100%', '100%', `<g stroke="#fdf3df" stroke-width="7" stroke-linecap="round" fill="none">
+      <path d="M50 10 V90 M15 30 L85 70 M15 70 L85 30 M40 16 L50 26 L60 16 M40 84 L50 74 L60 84"/></g>`);
+  }
+  const fill = kind === 'spark-cream' ? '#fff6d6' : '#ffd770';
+  return svg('0 0 100 100', '100%', '100%', `<path d="M50 2 Q56 44 98 50 Q56 56 50 98 Q44 56 2 50 Q44 44 50 2 Z" fill="${fill}"/>`);
+}
+
+// =========================================================
 // THẺ GAME Ở TRANG CHÍNH
 // =========================================================
 export function cardArt(name) {
+  if (name.startsWith('mascot-')) return mascotSVG(name.slice(7));
+  if (name.startsWith('st-')) return stickerSVG(name.slice(3));
+  if (name.startsWith('doodle-')) return doodleSVG(name.slice(7));
   if (name === 'card-photobooth') {
     const back = `<g transform="rotate(-9 110 130)">
         <rect x="46" y="36" width="128" height="176" rx="14" fill="#9e2630" stroke="${O}" stroke-width="5"/>
@@ -501,7 +660,7 @@ export function cardArt(name) {
         <rect x="132" y="28" width="140" height="190" rx="14" fill="#fdf3df" stroke="${O}" stroke-width="5"/>
         <rect x="142" y="38" width="120" height="170" rx="9" fill="#1d4532" stroke="#f2c46d" stroke-width="3"/>
         <circle cx="202" cy="118" r="52" fill="#ffcf7a" opacity=".22"/>
-        <svg x="146" y="52" width="116" height="136" viewBox="0 0 460 540">${kidSVG('chef', 'girl').replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
+        <svg x="146" y="52" width="116" height="136" viewBox="0 0 460 540">${kidSVG('chef', 'girl', '100%', '100%', true).replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
         <rect x="158" y="184" width="88" height="14" rx="7" fill="#f2c46d" opacity=".85"/>
       </g>`;
     return svg('0 0 320 240', '100%', '100%', `${back}${front}
