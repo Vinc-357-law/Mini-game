@@ -18,7 +18,7 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 | 1 | Khung chung: trang chính, cài đặt, lưu trữ, tuyết, nhạc, phím tắt, thư viện hình SVG | ✅ Xong |
 | 2 | Game 1 – Photobooth "Con của tương lai" (bản Đơn giản) + Album | ✅ Xong |
 | 3 | Game 2 – Cùng trang trí cây thông | ✅ Xong |
-| 4 | Game 3 – Lò nướng bánh gừng may mắn | ⏳ |
+| 4 | Game 3 – Lò nướng bánh gừng may mắn | ✅ Xong |
 | 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ⏳ |
 
 ## Nhật ký tiến độ
@@ -63,3 +63,16 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 - Toàn bộ trạng thái (đồ đã treo, quà, đèn) lưu lại, tải lại trang không mất.
 
 **Đã kiểm tra** (Edge headless, kéo thả thật bằng chuột giả lập): treo 6 món, thả trượt ra ngoài, tên đã nhận bị khoá, gõ tên mới, hoàn tác, thắp sáng bằng Space, tải lại trang vẫn giữ nguyên.
+
+### 19/11/2026 — Giai đoạn 4: Game 3 Lò nướng bánh gừng ✅
+**Đã làm**
+- Góc bếp ấm cúng: tường gạch men mờ, dây đèn vàng treo trên cao, mặt bàn gỗ; lò nướng màu kem có núm vặn, đồng hồ nhiệt độ, cửa kính phản chiếu.
+- Khay bánh gừng trong lò, mỗi chiếc mang tên khách (≤ 30 khách) hoặc **số bàn** (> 30 khách, tối đa 18 bánh cho đỡ rối). Người trúng luôn bốc ngẫu nhiên trên **toàn bộ** khách còn lại (dùng `crypto.getRandomValues`).
+- Cột bên phải: thẻ "Đang bốc" (tên giải, phần quà, lượt x/y, số khách còn trong lò), nút **Nướng bánh**, bảng **Đã trúng** (mới nhất ở trên) + dòng "Vắng mặt".
+- Nướng bánh (nút hoặc Space), khoảng 6 giây: lò sáng cam dần, nhiệt độ chạy 0 → 180°C, núm xoay, bánh nhún nhảy và đổi chỗ → tiếng "ting" → cửa lò mở xuống → một chiếc bánh bay ra giữa màn hình, phóng to, kèm tên giải + tên người trúng + số bàn.
+- **Tiếp tục** (Space): người trúng rời khỏi khay, ghi vào bảng; tự chuyển sang lượt/giải tiếp theo theo thứ tự thấp → cao; hết giải thì báo "Đã trao hết giải 🎉".
+- **Bốc lại (vắng mặt)**: người vừa trúng được ghi "vắng" (không quay lại lò), tự nướng lại cho chính giải đó.
+- Kết quả lưu lại, tải lại trang không mất; nút "Làm lại bốc thăm" trong Cài đặt.
+
+**Đã kiểm tra** (Edge headless): nướng → công bố → bốc lại → tiếp tục; bảng Đã trúng + Vắng mặt; chế độ 45 khách hiện số bàn.
+**Sửa trong lúc test**: nền màn công bố quá trong làm chữ lẫn với bảng phía sau; tên giải trong bảng bị cắt.
