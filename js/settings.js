@@ -6,7 +6,7 @@ import { el, esc, toast, download } from './ui.js';
 const FIELDS = [
   {
     key: 'careers', label: 'Danh sách nghề (Game 1)',
-    hint: 'Mỗi dòng: <code>Tên nghề | biểu tượng</code>. Có sẵn hình cho: Bác sĩ, Phi hành gia, Đầu bếp, Lính cứu hỏa, Họa sĩ, Ca sĩ, Cảnh sát, Giáo viên. Nghề khác dùng vương miện.',
+    hint: 'Mỗi dòng: <code>Tên nghề | biểu tượng</code>. Có sẵn hình cho: Bác sĩ, Phi hành gia, Đầu bếp, Lính cứu hỏa, Họa sĩ, Ca sĩ, Cảnh sát, Giáo viên. Nghề khác mặc áo len Noel, đội vương miện.',
     count: () => `${store.careers().length} nghề`,
   },
   {
@@ -30,11 +30,31 @@ const FIELDS = [
 ];
 
 let root;
+// Tự lưu sau khi ngừng gõ 350ms. Ô đang chờ lưu được ghi ngay khi chuyển sang ô khác,
+// khi rời màn hình, đóng trang, hoặc trước khi Xuất / Nhập / Khôi phục.
+let saveTimer = 0;
+let pendingField = null;
+
+function flush() {
+  clearTimeout(saveTimer);
+  const f = pendingField;
+  pendingField = null;
+  if (!f) return;
+  store.update((st) => { st.settings[f.dataset.key] = f.value; });
+  if (root) {
+    refreshCounts();
+    const s = root.querySelector('#saveState');
+    if (s) s.textContent = 'Đã lưu ✓';
+  }
+}
+window.addEventListener('pagehide', flush);
 
 export function init(section) {
   root = section;
   render();
 }
+
+export function leave() { flush(); }
 
 function render() {
   const s = store.settings();
@@ -82,21 +102,18 @@ function render() {
   root.appendChild(wrap);
   refreshCounts();
 
-  let timer;
   const state = wrap.querySelector('#saveState');
   wrap.addEventListener('input', (e) => {
-    const key = e.target.dataset.key;
-    if (!key) return;
+    if (!e.target.dataset.key) return;
+    if (pendingField && pendingField !== e.target) flush();   // ô trước chưa kịp lưu → lưu ngay
+    pendingField = e.target;
     state.textContent = 'Đang lưu…';
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      store.update((st) => { st.settings[key] = e.target.value; });
-      refreshCounts();
-      state.textContent = 'Đã lưu ✓';
-    }, 350);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 350);
   });
 
   wrap.querySelector('#btnExport').addEventListener('click', () => {
+    flush();
     const blob = new Blob([store.exportJSON()], { type: 'application/json' });
     const d = new Date();
     download(blob, `thoinoi-saoluu-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.json`);
@@ -104,7 +121,9 @@ function render() {
 
   wrap.querySelector('#fileImport').addEventListener('change', async (e) => {
     const file = e.target.files[0];
+    e.target.value = '';      // để chọn lại đúng file đó lần sau vẫn nhập được
     if (!file) return;
+    flush();
     try {
       store.importJSON(await file.text());
       render();
@@ -122,6 +141,7 @@ function render() {
       oven: 'Xoá kết quả bốc thăm (bảng "Đã trúng") để bốc lại từ đầu?',
       sample: 'Thay toàn bộ danh sách hiện tại bằng dữ liệu mẫu?',
     }[kind];
+    flush();
     if (!confirm(msg)) return;
     if (kind === 'photos') await clearPhotos();
     if (kind === 'tree') store.resetTree();
@@ -132,6 +152,7 @@ function render() {
 }
 
 function refreshCounts() {
+  if (!root) return;
   FIELDS.forEach((f) => {
     const c = root.querySelector(`[data-count="${f.key}"]`);
     if (c) c.textContent = f.count();

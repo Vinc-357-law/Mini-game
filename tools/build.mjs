@@ -24,7 +24,7 @@ function load(name) {
   src = src.replace(/^import\s+\{([^}]*)\}\s+from\s+'\.\/([\w-]+)\.js';?/gm, (_, list, dep) => {
     deps.push(dep);
     const names = list.split(',').map((s) => s.trim()).filter(Boolean)
-      .map((s) => s.replace(/^(\w+)\s+as\s+(\w+)$/, '$1: $2'));
+      .map((s) => s.replace(/^([\w$]+)\s+as\s+([\w$]+)$/, '$1: $2'));
     return `const { ${names.join(', ')} } = __m['${dep}'];`;
   });
   if (/^\s*import\b/m.test(src)) throw new Error(`${name}.js: câu import không hỗ trợ`);

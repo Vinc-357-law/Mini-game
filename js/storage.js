@@ -139,8 +139,9 @@ export function kidInfo() {
     const k = normalize(name);
     if (!name || seen.has(k)) return;
     seen.add(k);
+    // Chấp nhận nhiều cách ghi: "gái", "bé gái", "con gái", "nữ", "girl", "g" / "trai", "bé trai", "nam", "boy", "b"
     const gn = normalize(g);
-    const gender = /^(gai|nu|girl|g)$/.test(gn) ? 'girl' : /^(trai|nam|boy|b)$/.test(gn) ? 'boy' : '';
+    const gender = /\b(gai|nu|girl)\b|^g$/.test(gn) ? 'girl' : /\b(trai|nam|boy)\b|^b$/.test(gn) ? 'boy' : '';
     out.push({ name, gender });
   });
   return out;

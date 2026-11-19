@@ -14,7 +14,7 @@ Web viết bằng HTML/CSS/JS thuần, không cần webcam, không cần server 
 
 **Nhấp đúp `index.html`** là xong. Nên mở bằng **Chrome** hoặc **Edge**.
 
-Cách dự phòng nếu máy chặn mở file: nhấp đúp **`Mo-web.bat`**. Trình duyệt sẽ mở `http://localhost:5500/`. Giữ cửa sổ đen mở suốt buổi tiệc, đóng nó là web tắt.
+> Dữ liệu (danh sách, thẻ ước mơ, kết quả) lưu **trong trình duyệt đang dùng**. Hãy luôn mở bằng **cùng một trình duyệt trên cùng một máy**. Đổi sang trình duyệt hoặc máy khác thì dùng Xuất / Nhập file sao lưu.
 
 ## 2. Chuẩn bị trước tiệc (Cài đặt ⚙)
 
@@ -28,7 +28,7 @@ Bấm biểu tượng ⚙ ở góc trên bên phải. Các ô đều nhập theo
 | Danh sách khách | `Tên khách \| Bàn số` | `Chú Hùng \| Bàn 3` |
 | Giải thưởng | `Tên giải \| Phần quà \| Số lượng` | `Giải Ba \| 1 phần quà \| 2` |
 
-- Ghi kèm **trai/gái** cho các bé thì thẻ ước mơ tự chọn đúng hình bé trai hoặc bé gái.
+- Ghi kèm **trai/gái** cho các bé (viết `trai`, `bé trai`, `nam` hay `gái`, `bé gái`, `nữ` đều được) thì thẻ ước mơ tự chọn đúng hình bé trai hoặc bé gái.
 - Giải thưởng nên xếp **từ giải thấp đến giải cao**, vì game bốc lần lượt theo đúng thứ tự này.
 - Từ **31 khách** trở lên, bánh trong lò hiện **số bàn** thay vì tên để màn hình đỡ rối. Lúc công bố vẫn hiện đầy đủ tên.
 - Trang phục có sẵn cho 8 nghề: Bác sĩ, Phi hành gia, Đầu bếp, Lính cứu hỏa, Họa sĩ, Ca sĩ, Cảnh sát, Giáo viên. Nghề khác dùng áo len Noel và vương miện.
@@ -51,7 +51,10 @@ Chỉ cần dùng chuột. Có thêm vài phím tắt:
 
 ### Game 1: Con của tương lai
 Bé chọn một thẻ nghề → MC chọn **Bé trai / Bé gái**, gõ tên bé (hoặc chọn nhanh trong danh sách, hoặc **Bỏ qua**) → bấm **Lật thẻ**. Thẻ đỏ lật ra hình bé mặc đồ nghề kèm dòng *"Mai này Bin là Bác sĩ 🩺"*.
-Bấm **Lưu thẻ** (hoặc `Space`) để cất vào album. Bấm vào tên bé ở thanh dưới nếu cần sửa tên.
+- Bé có trong danh sách kèm trai/gái thì web tự chọn hình. MC bấm Bé trai/Bé gái thì web theo lựa chọn của MC.
+- Gõ tên viết thường (vd. `bin`) web tự sửa thành đúng tên trong danh sách (`Bin`).
+
+Bấm **Lưu thẻ** (hoặc `Space`) để cất vào album. Bấm vào tên bé ở thanh dưới nếu cần sửa tên hoặc đổi bé trai/bé gái. Lúc đang sửa tên, bấm **Huỷ** hoặc `Esc` sẽ giữ nguyên tên cũ.
 Gợi ý: bố mẹ chụp bé đứng cạnh màn hình lúc thẻ vừa lật.
 Nút **Album thẻ** dùng để xem lại, tải từng thẻ, **tải cả bộ (.zip)** hoặc **Trình chiếu** toàn màn hình.
 
@@ -63,20 +66,19 @@ Treo nhầm thì bấm **Hoàn tác**. Cuối game bấm **Thắp sáng cây th�
 Bấm **Nướng bánh** (hoặc `Space`): lò sáng dần, bánh nhảy và đổi chỗ, "ting!", rồi người trúng hiện ra giữa màn hình.
 - **Tiếp tục**: ghi người trúng vào bảng và chuyển sang lượt tiếp theo.
 - **Bốc lại (vắng mặt)**: người trúng không có mặt sẽ được ghi "vắng", web bốc lại cho chính giải đó.
+- Lỡ bấm sang màn hình khác khi lò đang nướng thì lượt đó bị huỷ, chưa ai trúng. Vào lại bấm Nướng bánh từ đầu.
+- Có thể sửa số lượng hoặc thêm giải giữa chừng. Web đếm số người đã trúng của từng giải để biết đang bốc giải nào.
 
-## 4. Tuỳ biến (không bắt buộc)
+## 4. Nhạc nền riêng (không bắt buộc)
 
-| File | Dùng cho |
-|---|---|
-| `assets/audio/bgm.mp3` | Nhạc nền thay cho hộp nhạc có sẵn |
-| `assets/props/frame.png` | Viền Noel riêng cho thẻ ước mơ (1600×1200, giữa trong suốt). Chỉ dùng được khi mở bằng `Mo-web.bat` |
+Muốn dùng nhạc riêng thay cho hộp nhạc có sẵn: đặt file nhạc vào `assets/audio/` và đặt tên là **`bgm.mp3`**.
 
 ## 5. Gặp sự cố?
 
 | Hiện tượng | Cách xử lý |
 |---|---|
 | Không nghe nhạc | Bấm vào trang một lần (trình duyệt chặn tự phát nhạc), rồi bấm nút ♪ hoặc phím `M` |
-| Nhấp đúp `index.html` mà trang trống | Dùng `Mo-web.bat` |
+| Mở lên thấy mất danh sách đã nhập | Kiểm tra có đang mở bằng đúng trình duyệt lúc nhập không (Chrome và Edge lưu riêng) |
 | Muốn chơi lại từ đầu | Cài đặt → Làm lại từ đầu |
 | Đổi sang máy khác | Cài đặt → Xuất file sao lưu → sang máy mới bấm Nhập file. Thẻ ước mơ không nằm trong file sao lưu, hãy tải album .zip trước |
 
@@ -104,7 +106,7 @@ js/
   game3.js          Lò nướng bánh gừng
   zip.js, ui.js     Tiện ích
   app.bundle.js     (tự tạo) bản gộp mà index.html chạy
-tools/              build.mjs (gộp JS), serve.ps1 (server dự phòng cho Mo-web.bat)
-assets/             font, favicon, (nhạc/viền tuỳ biến)
+tools/build.mjs     Gộp các file JS thành js/app.bundle.js
+assets/             font, favicon, (nhạc nền tuỳ biến)
 plan.md             Kế hoạch & nhật ký tiến độ
 ```

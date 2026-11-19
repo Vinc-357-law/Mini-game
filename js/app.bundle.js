@@ -146,8 +146,9 @@ function kidInfo() {
     const k = normalize(name);
     if (!name || seen.has(k)) return;
     seen.add(k);
+    // Chấp nhận nhiều cách ghi: "gái", "bé gái", "con gái", "nữ", "girl", "g" / "trai", "bé trai", "nam", "boy", "b"
     const gn = normalize(g);
-    const gender = /^(gai|nu|girl|g)$/.test(gn) ? 'girl' : /^(trai|nam|boy|b)$/.test(gn) ? 'boy' : '';
+    const gender = /\b(gai|nu|girl)\b|^g$/.test(gn) ? 'girl' : /\b(trai|nam|boy)\b|^b$/.test(gn) ? 'boy' : '';
     out.push({ name, gender });
   });
   return out;
@@ -487,7 +488,7 @@ const { el, esc, toast, download } = __m['ui'];
 const FIELDS = [
   {
     key: 'careers', label: 'Danh sách nghề (Game 1)',
-    hint: 'Mỗi dòng: <code>Tên nghề | biểu tượng</code>. Có sẵn hình cho: Bác sĩ, Phi hành gia, Đầu bếp, Lính cứu hỏa, Họa sĩ, Ca sĩ, Cảnh sát, Giáo viên. Nghề khác dùng vương miện.',
+    hint: 'Mỗi dòng: <code>Tên nghề | biểu tượng</code>. Có sẵn hình cho: Bác sĩ, Phi hành gia, Đầu bếp, Lính cứu hỏa, Họa sĩ, Ca sĩ, Cảnh sát, Giáo viên. Nghề khác mặc áo len Noel, đội vương miện.',
     count: () => `${store.careers().length} nghề`,
   },
   {
@@ -511,11 +512,31 @@ const FIELDS = [
 ];
 
 let root;
+// Tự lưu sau khi ngừng gõ 350ms. Ô đang chờ lưu được ghi ngay khi chuyển sang ô khác,
+// khi rời màn hình, đóng trang, hoặc trước khi Xuất / Nhập / Khôi phục.
+let saveTimer = 0;
+let pendingField = null;
+
+function flush() {
+  clearTimeout(saveTimer);
+  const f = pendingField;
+  pendingField = null;
+  if (!f) return;
+  store.update((st) => { st.settings[f.dataset.key] = f.value; });
+  if (root) {
+    refreshCounts();
+    const s = root.querySelector('#saveState');
+    if (s) s.textContent = 'Đã lưu ✓';
+  }
+}
+window.addEventListener('pagehide', flush);
 
 function init(section) {
   root = section;
   render();
 }
+
+function leave() { flush(); }
 
 function render() {
   const s = store.settings();
@@ -563,21 +584,18 @@ function render() {
   root.appendChild(wrap);
   refreshCounts();
 
-  let timer;
   const state = wrap.querySelector('#saveState');
   wrap.addEventListener('input', (e) => {
-    const key = e.target.dataset.key;
-    if (!key) return;
+    if (!e.target.dataset.key) return;
+    if (pendingField && pendingField !== e.target) flush();   // ô trước chưa kịp lưu → lưu ngay
+    pendingField = e.target;
     state.textContent = 'Đang lưu…';
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      store.update((st) => { st.settings[key] = e.target.value; });
-      refreshCounts();
-      state.textContent = 'Đã lưu ✓';
-    }, 350);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 350);
   });
 
   wrap.querySelector('#btnExport').addEventListener('click', () => {
+    flush();
     const blob = new Blob([store.exportJSON()], { type: 'application/json' });
     const d = new Date();
     download(blob, `thoinoi-saoluu-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.json`);
@@ -585,7 +603,9 @@ function render() {
 
   wrap.querySelector('#fileImport').addEventListener('change', async (e) => {
     const file = e.target.files[0];
+    e.target.value = '';      // để chọn lại đúng file đó lần sau vẫn nhập được
     if (!file) return;
+    flush();
     try {
       store.importJSON(await file.text());
       render();
@@ -603,6 +623,7 @@ function render() {
       oven: 'Xoá kết quả bốc thăm (bảng "Đã trúng") để bốc lại từ đầu?',
       sample: 'Thay toàn bộ danh sách hiện tại bằng dữ liệu mẫu?',
     }[kind];
+    flush();
     if (!confirm(msg)) return;
     if (kind === 'photos') await clearPhotos();
     if (kind === 'tree') store.resetTree();
@@ -613,6 +634,7 @@ function render() {
 }
 
 function refreshCounts() {
+  if (!root) return;
   FIELDS.forEach((f) => {
     const c = root.querySelector(`[data-count="${f.key}"]`);
     if (c) c.textContent = f.count();
@@ -620,13 +642,12 @@ function refreshCounts() {
 }
 
 function enter() { render(); }
-return { init, enter };
+return { init, leave, enter };
 })();
 
 // ===== js/art.js =====
 __m['art'] = (() => {
 // Thư viện hình minh họa SVG (vẽ tay bằng code) — phong cách phẳng, viền nâu ấm.
-// Viền thẻ có thể thay bằng PNG riêng: assets/props/frame.png (xem README).
 
 const O = '#3b2414';            // màu viền
 const NS = 'http://www.w3.org/2000/svg';
@@ -1251,14 +1272,7 @@ function loadImage(src) {
     img.src = src;
   });
 }
-// Ưu tiên PNG người dùng tự thêm, không có thì dùng SVG.
-// Mở bằng file:// thì bỏ qua PNG (trình duyệt sẽ chặn lưu ảnh có hình từ file).
-async function imageWithOverride(pngPath, svgString) {
-  if (location.protocol === 'file:') return svgToImage(svgString);
-  try { return await loadImage(pngPath); }
-  catch { return svgToImage(svgString); }
-}
-return { svg, starPath, kidSVG, giftSVG, treeSVG, gingerSVG, cardArt, frameSVG, svgToImage, loadImage, imageWithOverride, hatSVG, propSVG, careerCardSVG, ORNAMENTS, ornamentSVG };
+return { svg, starPath, kidSVG, giftSVG, treeSVG, gingerSVG, cardArt, frameSVG, svgToImage, loadImage, hatSVG, propSVG, careerCardSVG, ORNAMENTS, ornamentSVG };
 })();
 
 // ===== js/zip.js =====
@@ -1350,7 +1364,7 @@ __m['game1'] = (() => {
 // Bé chọn nghề → MC gõ tên, chọn bé trai/bé gái → lật thẻ có hình bé mặc đồ nghề đó.
 const store = __m['storage'];
 const { sfx } = __m['audio'];
-const { careerCardSVG, kidSVG, frameSVG, imageWithOverride, svgToImage } = __m['art'];
+const { careerCardSVG, kidSVG, frameSVG, svgToImage } = __m['art'];
 const { addPhoto, allPhotos, deletePhoto, countPhotos } = __m['db'];
 const { makeZip } = __m['zip'];
 const { $, $$, el, esc, toast, download, sleep } = __m['ui'];
@@ -1361,9 +1375,11 @@ let root;
 let career = null;         // { name, emoji, key, slug }
 let kidName = '';
 let gender = 'boy';
+let genderTouched = false; // MC tự bấm Bé trai/Bé gái trong lần mở hộp tên này
+let renaming = false;      // hộp tên đang mở để sửa tên của thẻ đã lật
 let frameImg = null;
-let busy = false;
-let renderSeq = 0;
+let renderSeq = 0;         // tăng mỗi lần lật thẻ mới → lần lật cũ đang chạy dở tự dừng
+let saving = false;
 let lastBlob = null, lastUrl = null;
 let albumUrls = [];
 let photos = [];
@@ -1470,9 +1486,7 @@ function init(section) {
   });
   window.addEventListener('resize', fitStages);
 
-  imageWithOverride('assets/props/frame.png', frameSVG()).then((img) => { frameImg = img; });
-  document.fonts.load('700 70px "Dancing Script"');
-  document.fonts.load('600 26px "Be Vietnam Pro"');
+  svgToImage(frameSVG()).then((img) => { frameImg = img; });
 }
 
 function enter() {
@@ -1482,13 +1496,18 @@ function enter() {
 }
 
 function leave() {
+  resetFlip();
   closeSlideshow();
   closeName();
 }
 
 function onEsc() {
   if (!$('.slideshow', root).hidden) { closeSlideshow(); return true; }
-  if (!$('[data-modal="name"]', root).hidden) { confirmName(''); return true; }
+  if (!$('[data-modal="name"]', root).hidden) {
+    // Đang sửa tên → Esc chỉ đóng hộp, giữ tên cũ. Lần đầu → Esc = bỏ qua tên.
+    if (renaming) closeName(); else confirmName('');
+    return true;
+  }
   return false;
 }
 
@@ -1497,7 +1516,7 @@ function onClick(e) {
   const card = e.target.closest('.career-card');
   if (card) { pickCareer(Number(card.dataset.idx)); return; }
   const g = e.target.closest('.gender-chip');
-  if (g) { setGender(g.dataset.gender); return; }
+  if (g) { setGender(g.dataset.gender); genderTouched = true; return; }
   const chip = e.target.closest('.name-chips .chip');
   if (chip) { confirmName(chip.dataset.name); return; }
   const btn = e.target.closest('[data-act]');
@@ -1505,12 +1524,12 @@ function onClick(e) {
   const act = btn.dataset.act;
   const actions = {
     album: openAlbum,
-    'back-pick': () => { showStep('pick'); refreshCount(); },
-    rename: () => openName(),
+    'back-pick': () => { resetFlip(); showStep('pick'); refreshCount(); },
+    rename: () => openName(true),
     keep,
     zip: downloadAll,
     slideshow: openSlideshow,
-    'name-skip': () => confirmName(''),
+    'name-skip': () => (renaming ? closeName() : confirmName('')),
     'name-ok': () => confirmName($('.name-field', root).value),
     'ss-prev': () => ssGo(ssIdx - 1),
     'ss-next': () => ssGo(ssIdx + 1),
@@ -1561,7 +1580,7 @@ function pickCareer(idx) {
   resetFlip();
   updateWho();
   showStep('card');
-  openName();
+  openName(false);
 }
 
 // ---------------- Tên bé ----------------
@@ -1569,11 +1588,14 @@ function setGender(g) {
   gender = g === 'girl' ? 'girl' : 'boy';
   $$('.gender-chip', root).forEach((c) => c.classList.toggle('selected', c.dataset.gender === gender));
 }
-function openName() {
+function openName(isRename) {
+  renaming = !!isRename;
+  genderTouched = false;
   const modal = $('[data-modal="name"]', root);
   const field = $('.name-field', root);
-  field.value = kidName;
+  field.value = renaming ? kidName : '';
   setGender(gender);
+  $('[data-act="name-skip"]', root).textContent = renaming ? 'Huỷ' : 'Bỏ qua';
   $('.name-chips', root).innerHTML = store.kidInfo()
     .map((k) => `<button class="chip" data-name="${esc(k.name)}">${esc(k.name)}</button>`).join('');
   modal.hidden = false;
@@ -1584,12 +1606,18 @@ function closeName() {
   if (!m) return;
   $('.name-field', root).blur();   // để phím Space hoạt động ngay sau khi đóng
   m.hidden = true;
+  renaming = false;
 }
 function confirmName(name) {
-  kidName = (name || '').trim();
-  // Tên có trong danh sách kèm giới tính → tự chọn hình bé trai/bé gái
-  const known = store.kidInfo().find((k) => store.normalize(k.name) === store.normalize(kidName));
-  if (known?.gender) setGender(known.gender);
+  let n = (name || '').trim();
+  // Tên có trong danh sách → dùng đúng cách viết trong danh sách ("bin" → "Bin")
+  // và tự chọn hình bé trai/bé gái, trừ khi MC vừa tự bấm chọn.
+  const known = n && store.kidInfo().find((k) => store.normalize(k.name) === store.normalize(n));
+  if (known) {
+    n = known.name;
+    if (known.gender && !genderTouched) setGender(known.gender);
+  }
+  kidName = n;
   closeName();
   updateWho();
   reveal();
@@ -1601,20 +1629,33 @@ function updateWho() {
 }
 
 // ---------------- Lật thẻ ----------------
+// Úp thẻ lại ngay (không chạy hiệu ứng lật ngược) và huỷ lần lật đang chạy dở
 function resetFlip() {
-  $('.flip', root).classList.remove('flipped');
+  if (!root) return;
+  renderSeq++;
+  const flip = $('.flip', root);
+  flip.style.transition = 'none';
+  flip.classList.remove('flipped');
+  void flip.offsetWidth;
+  flip.style.transition = '';
+  $('.card-img', root).removeAttribute('src');
   $('[data-act="keep"]', root).disabled = true;
   lastBlob = null;
 }
 
 async function reveal() {
   if (!career) return;
-  const seq = ++renderSeq;
-  busy = true;
   resetFlip();
-  const blob = await renderCard();
+  const seq = renderSeq;
+  let blob;
+  try {
+    blob = await renderCard();
+  } catch (err) {
+    console.error(err);
+    if (seq === renderSeq) toast('Chưa vẽ được thẻ. Bấm vào tên bé ở dưới để thử lại nhé', 3500);
+    return;
+  }
   if (seq !== renderSeq) return;      // MC đã đổi tên/nghề trong lúc vẽ
-  lastBlob = blob;
   if (lastUrl) URL.revokeObjectURL(lastUrl);
   lastUrl = URL.createObjectURL(blob);
   const img = $('.card-img', root);
@@ -1628,8 +1669,8 @@ async function reveal() {
   if (seq !== renderSeq) return;
   sfx.sparkle();
   sparkles($('.flip-box', root));
+  lastBlob = blob;                    // chỉ cho lưu khi thẻ đã lật xong
   $('[data-act="keep"]', root).disabled = false;
-  busy = false;
 }
 
 function sparkles(box) {
@@ -1660,9 +1701,16 @@ function fitFont(c, text, weight, family, size, maxW, min) {
 }
 
 async function renderCard() {
-  const kid = await svgToImage(kidSVG(career.key, gender, 460, 540));
-  if (!frameImg) frameImg = await imageWithOverride('assets/props/frame.png', frameSVG());
-  await document.fonts.ready;
+  const name = kidName || 'bé yêu';
+  const job = `là ${career.name}${career.emoji ? ' ' + career.emoji : ''}`;
+  const footer = `Thôi nôi bé ${store.babyName()} · Giáng sinh ${new Date().getFullYear()}`;
+  const [kid] = await Promise.all([
+    svgToImage(kidSVG(career.key, gender, 460, 540)),
+    // Nạp đủ nét chữ tiếng Việt (ư, ơ, ố…) cho đúng các chữ sắp vẽ, tránh canvas vẽ bằng font dự phòng
+    document.fonts.load('700 100px "Dancing Script"', name + job).catch(() => {}),
+    document.fonts.load('600 40px "Be Vietnam Pro"', `MAI NÀY ${footer}`).catch(() => {}),
+  ]);
+  if (!frameImg) frameImg = await svgToImage(frameSVG());
 
   const cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
@@ -1703,7 +1751,6 @@ async function renderCard() {
   c.fillStyle = '#fbe7b5';
   c.fillText('MAI NÀY', cx, 430);
 
-  const name = kidName || 'bé yêu';
   const fam = `"Dancing Script", ${emojiFont}, cursive`;
   fitFont(c, name, 700, fam, 170, 740, 80);
   c.save();
@@ -1713,7 +1760,6 @@ async function renderCard() {
   c.fillText(name, cx, 570);
   c.restore();
 
-  const job = `là ${career.name}${career.emoji ? ' ' + career.emoji : ''}`;
   fitFont(c, job, 700, fam, 104, 760, 56);
   c.fillStyle = '#fdf3df';
   c.fillText(job, cx, 730);
@@ -1732,20 +1778,34 @@ async function renderCard() {
   c.stroke();
   c.font = '600 30px "Be Vietnam Pro", sans-serif';
   c.fillStyle = '#fdf3df';
-  c.fillText(`Thôi nôi bé ${store.babyName()} · Giáng sinh ${new Date().getFullYear()}`, cx, ry + 39);
+  c.fillText(footer, cx, ry + 39);
 
   if (frameImg) c.drawImage(frameImg, 0, 0, W, H);
   return new Promise((r) => cv.toBlob(r, 'image/jpeg', 0.92));
 }
 
 async function keep() {
-  if (!lastBlob || busy) return;
-  await addPhoto({ blob: lastBlob, name: kidName, career: career?.name || '', emoji: career?.emoji || '', ts: Date.now() });
+  if (!lastBlob || saving) return;    // chặn bấm 2 lần liền → lưu trùng
+  saving = true;
+  const btn = $('[data-act="keep"]', root);
+  btn.disabled = true;
+  const blob = lastBlob;
   lastBlob = null;
-  sfx.sparkle();
-  toast('Đã lưu thẻ vào album ✨');
-  showStep('pick');
-  refreshCount();
+  try {
+    await addPhoto({ blob, name: kidName, career: career?.name || '', emoji: career?.emoji || '', ts: Date.now() });
+    sfx.sparkle();
+    toast('Đã lưu thẻ vào album ✨');
+    resetFlip();
+    showStep('pick');
+    refreshCount();
+  } catch (err) {
+    console.error(err);
+    lastBlob = blob;
+    btn.disabled = false;
+    toast('Chưa lưu được thẻ, thử bấm Lưu thẻ lần nữa nhé', 3500);
+  } finally {
+    saving = false;
+  }
 }
 
 async function refreshCount() {
@@ -2007,7 +2067,7 @@ function updateCounter() {
 
 function makeOrnament(it, animate) {
   const n = el(`
-    <div class="orn ${animate ? 'swing' : ''}" style="left:${it.x}%;top:${it.y}%">
+    <div class="orn ${animate ? 'swing' : ''}" ${it.id ? `data-id="${it.id}"` : ''} style="left:${it.x}%;top:${it.y}%">
       <div class="orn-art">${ornamentSVG(it.type)}</div>
       ${it.kid ? `<span class="orn-name">${esc(it.kid)}</span>` : ''}
     </div>`);
@@ -2026,7 +2086,7 @@ function giftSlot(i) {
 function makeGift(it, i, animate) {
   const { dx, dy, row } = giftSlot(i);
   const n = el(`
-    <div class="gift ${animate ? 'drop' : ''}" style="--dx:${dx};--dy:${dy};z-index:${50 - row}">
+    <div class="gift ${animate ? 'drop' : ''}" data-id="${it.id}" style="--dx:${dx};--dy:${dy};z-index:${50 - row}">
       <div class="gift-art">${giftSVG(it.color ?? i)}</div>
       <span class="gift-tag">${esc(it.kid)}</span>
     </div>`);
@@ -2068,7 +2128,8 @@ function onDragEnd(e) {
   if (!drag) return;
   const { type, ghost, startRect, size } = drag;
   $$('.tray-item', root).forEach((t) => t.classList.remove('picked'));
-  if (e.type === 'pointerup' && overTree(e.clientX, e.clientY)) {
+  // (cây đã thắp sáng giữa lúc đang kéo, ví dụ bấm Space → không treo nữa)
+  if (e.type === 'pointerup' && !treeState().lit && overTree(e.clientX, e.clientY)) {
     const r = treeBox.getBoundingClientRect();
     const x = ((e.clientX - r.left) / r.width) * 100;
     const y = ((e.clientY - r.top) / r.height) * 100;
@@ -2086,11 +2147,13 @@ function onDragEnd(e) {
   }
 }
 
+// Rời màn hình giữa lúc đang kéo: dọn món đồ đang cầm, trả khay về bình thường
 function endDrag() {
   if (!drag) return;
   drag.ghost.remove();
   drag = null;
   window.removeEventListener('pointermove', onDragMove);
+  $$('.tray-item', root).forEach((t) => t.classList.remove('picked'));
 }
 
 // ---------------- Chọn tên bé ----------------
@@ -2129,9 +2192,11 @@ function cancelPending() {
 }
 
 function confirmKid(raw) {
-  const name = (raw || '').trim();
+  const typed = (raw || '').trim();
   if (!pending) return;
-  if (!name) { $('.kid-field', root).focus(); toast('Chọn hoặc gõ tên bé nhé'); return; }
+  if (!typed) { $('.kid-field', root).focus(); toast('Chọn hoặc gõ tên bé nhé'); return; }
+  // Gõ tay tên có trong danh sách → dùng đúng cách viết trong danh sách ("bin" → "Bin")
+  const name = store.kids().find((k) => store.normalize(k) === store.normalize(typed)) || typed;
   if (isReceived(name)) { toast(`Bạn ${name} đã nhận quà rồi`); return; }
 
   const items = treeState().items;
@@ -2147,6 +2212,7 @@ function confirmKid(raw) {
   store.update((s) => { s.tree.items.push(item); });
 
   // gắn tên dưới món đồ vừa treo
+  pending.node.dataset.id = item.id;
   pending.node.insertAdjacentHTML('beforeend', `<span class="orn-name">${esc(name)}</span>`);
   pending = null;
   closeKid();
@@ -2180,10 +2246,10 @@ function undo() {
   if (!items.length) return;
   const last = items[items.length - 1];
   store.update((s) => { s.tree.items.pop(); });
-  const orns = $$('.orn', ornLayer);
-  const gifts = $$('.gift', pile);
-  [orns[orns.length - 1], gifts[gifts.length - 1]].forEach((n) => {
+  // Gỡ đúng món đồ + hộp quà của lượt này (theo id), kể cả khi bấm Hoàn tác liên tục
+  [$(`.orn[data-id="${last.id}"]`, ornLayer), $(`.gift[data-id="${last.id}"]`, pile)].forEach((n) => {
     if (!n) return;
+    n.removeAttribute('data-id');
     n.classList.add('fade-out');
     setTimeout(() => n.remove(), 400);
   });
@@ -2218,7 +2284,9 @@ const TABLE_MODE_FROM = 31;     // trên 30 khách: bánh hiện số bàn
 const BAKE_MS = 6000;
 
 let root, tray;
+let active = false;             // đang ở màn hình lò nướng
 let baking = false;
+let bakeId = 0;                 // tăng khi huỷ lượt nướng (rời màn hình giữa chừng)
 let shuffleTimer = 0;
 let lastWinner = null;          // lượt vừa bốc (để Bốc lại)
 
@@ -2295,10 +2363,14 @@ function init(section) {
 }
 
 function enter() {
-  if (!baking) render();
+  active = true;
+  render();
 }
 
+// Rời màn hình khi đang nướng → huỷ lượt đó (chưa ai trúng), lần sau vào lại nướng từ đầu
 function leave() {
+  active = false;
+  if (baking) { bakeId++; baking = false; }
   clearInterval(shuffleTimer);
 }
 
@@ -2316,9 +2388,22 @@ function pool() {
   return store.guests().filter((g) => !out.has(g.id));
 }
 const tableMode = () => store.guests().length >= TABLE_MODE_FROM;
+// Chữ trên bánh: số bàn (khi đông khách) hoặc tên. Khách không ghi bàn thì hiện tên.
+const cookieLabel = (g) => (tableMode() ? (g.tableNo ? `Bàn ${g.tableNo}` : (g.table || g.name)) : g.name);
+
+// Lượt đang bốc = lượt đầu tiên (theo thứ tự giải thấp → cao) chưa đủ người trúng.
+// Đếm theo từng giải nên vẫn đúng khi MC sửa số lượng / thứ tự giải giữa chừng.
 function currentSlot() {
   const slots = store.prizeSlots();
-  return { slot: slots[ovenState().winners.length] || null, total: slots.length };
+  const won = new Map();
+  ovenState().winners.forEach((w) => won.set(w.prize, (won.get(w.prize) || 0) + 1));
+  const need = new Map();
+  const slot = slots.find((s) => {
+    const k = (need.get(s.label) || 0) + 1;
+    need.set(s.label, k);
+    return (won.get(s.label) || 0) < k;
+  }) || null;
+  return { slot, total: slots.length };
 }
 
 // ---------------- Hiển thị ----------------
@@ -2336,6 +2421,9 @@ function renderPrize() {
   const btn = $('[data-act="bake"]', root);
   if (!store.prizeSlots().length) {
     setPrize('Chưa có giải', 'Vào Cài đặt để nhập danh sách giải thưởng', '');
+    btn.disabled = true;
+  } else if (!store.guests().length) {
+    setPrize('Chưa có khách', 'Vào Cài đặt để nhập danh sách khách mời', '');
     btn.disabled = true;
   } else if (!slot) {
     setPrize('Đã trao hết giải 🎉', 'Cảm ơn cả nhà đã tham gia!', '');
@@ -2374,8 +2462,8 @@ function cookieLabels() {
     const seen = new Set();
     const tables = [];
     for (const g of shuffle(p)) {
-      const t = g.tableNo || g.table || '?';
-      if (!seen.has(t)) { seen.add(t); tables.push(g.tableNo ? `Bàn ${g.tableNo}` : (g.table || '?')); }
+      const l = cookieLabel(g);
+      if (!seen.has(l)) { seen.add(l); tables.push(l); }
     }
     return tables.slice(0, 18);
   }
@@ -2418,11 +2506,13 @@ function layoutCookies(order) {
 
 // ---------------- Nướng & bốc ----------------
 async function bake() {
-  if (baking) return;
+  if (baking || !active) return;
   const { slot } = currentSlot();
   const p = pool();
   if (!slot || !p.length) return;
   baking = true;
+  const id = ++bakeId;
+  const cancelled = () => id !== bakeId;
   lastWinner = null;
   const g3 = root.querySelector('.g3');
   $('[data-act="bake"]', root).disabled = true;
@@ -2444,17 +2534,20 @@ async function bake() {
   const n = $$('.cookie', tray).length;
   shuffleTimer = setInterval(() => layoutCookies(shuffle([...Array(n).keys()])), 650);
   await sleep(BAKE_MS - 600);
+  if (cancelled()) return;
   clearInterval(shuffleTimer);
   await sleep(600);
+  if (cancelled()) return;
 
   // ting! cửa lò mở
   sfx.ting();
   g3.classList.add('open');
   await sleep(700);
+  if (cancelled()) return;
 
   // chọn người trúng
   const winner = p[randInt(p.length)];
-  const label = tableMode() ? (winner.tableNo ? `Bàn ${winner.tableNo}` : winner.table) : winner.name;
+  const label = cookieLabel(winner);
   const cookies = $$('.cookie', tray);
   let src = cookies.find((c) => $('.ck-tag', c).textContent === label) || cookies[randInt(cookies.length)];
   $('.ck-tag', src).textContent = label;
@@ -2514,7 +2607,7 @@ async function redraw() {
   lastWinner = null;
   render();
   await sleep(500);
-  bake();
+  if (active) bake();
 }
 return { init, enter, leave, onEsc };
 })();

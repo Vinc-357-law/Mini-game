@@ -1,5 +1,4 @@
 // Thư viện hình minh họa SVG (vẽ tay bằng code) — phong cách phẳng, viền nâu ấm.
-// Viền thẻ có thể thay bằng PNG riêng: assets/props/frame.png (xem README).
 
 const O = '#3b2414';            // màu viền
 const NS = 'http://www.w3.org/2000/svg';
@@ -623,11 +622,4 @@ export function loadImage(src) {
     img.onerror = reject;
     img.src = src;
   });
-}
-// Ưu tiên PNG người dùng tự thêm, không có thì dùng SVG.
-// Mở bằng file:// thì bỏ qua PNG (trình duyệt sẽ chặn lưu ảnh có hình từ file).
-export async function imageWithOverride(pngPath, svgString) {
-  if (location.protocol === 'file:') return svgToImage(svgString);
-  try { return await loadImage(pngPath); }
-  catch { return svgToImage(svgString); }
 }

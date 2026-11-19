@@ -2,7 +2,7 @@
 // Bé chọn nghề → MC gõ tên, chọn bé trai/bé gái → lật thẻ có hình bé mặc đồ nghề đó.
 import * as store from './storage.js';
 import { sfx } from './audio.js';
-import { careerCardSVG, kidSVG, frameSVG, imageWithOverride, svgToImage } from './art.js';
+import { careerCardSVG, kidSVG, frameSVG, svgToImage } from './art.js';
 import { addPhoto, allPhotos, deletePhoto, countPhotos } from './db.js';
 import { makeZip } from './zip.js';
 import { $, $$, el, esc, toast, download, sleep } from './ui.js';
@@ -13,9 +13,11 @@ let root;
 let career = null;         // { name, emoji, key, slug }
 let kidName = '';
 let gender = 'boy';
+let genderTouched = false; // MC tự bấm Bé trai/Bé gái trong lần mở hộp tên này
+let renaming = false;      // hộp tên đang mở để sửa tên của thẻ đã lật
 let frameImg = null;
-let busy = false;
-let renderSeq = 0;
+let renderSeq = 0;         // tăng mỗi lần lật thẻ mới → lần lật cũ đang chạy dở tự dừng
+let saving = false;
 let lastBlob = null, lastUrl = null;
 let albumUrls = [];
 let photos = [];
@@ -122,9 +124,7 @@ export function init(section) {
   });
   window.addEventListener('resize', fitStages);
 
-  imageWithOverride('assets/props/frame.png', frameSVG()).then((img) => { frameImg = img; });
-  document.fonts.load('700 70px "Dancing Script"');
-  document.fonts.load('600 26px "Be Vietnam Pro"');
+  svgToImage(frameSVG()).then((img) => { frameImg = img; });
 }
 
 export function enter() {
@@ -134,13 +134,18 @@ export function enter() {
 }
 
 export function leave() {
+  resetFlip();
   closeSlideshow();
   closeName();
 }
 
 export function onEsc() {
   if (!$('.slideshow', root).hidden) { closeSlideshow(); return true; }
-  if (!$('[data-modal="name"]', root).hidden) { confirmName(''); return true; }
+  if (!$('[data-modal="name"]', root).hidden) {
+    // Đang sửa tên → Esc chỉ đóng hộp, giữ tên cũ. Lần đầu → Esc = bỏ qua tên.
+    if (renaming) closeName(); else confirmName('');
+    return true;
+  }
   return false;
 }
 
@@ -149,7 +154,7 @@ function onClick(e) {
   const card = e.target.closest('.career-card');
   if (card) { pickCareer(Number(card.dataset.idx)); return; }
   const g = e.target.closest('.gender-chip');
-  if (g) { setGender(g.dataset.gender); return; }
+  if (g) { setGender(g.dataset.gender); genderTouched = true; return; }
   const chip = e.target.closest('.name-chips .chip');
   if (chip) { confirmName(chip.dataset.name); return; }
   const btn = e.target.closest('[data-act]');
@@ -157,12 +162,12 @@ function onClick(e) {
   const act = btn.dataset.act;
   const actions = {
     album: openAlbum,
-    'back-pick': () => { showStep('pick'); refreshCount(); },
-    rename: () => openName(),
+    'back-pick': () => { resetFlip(); showStep('pick'); refreshCount(); },
+    rename: () => openName(true),
     keep,
     zip: downloadAll,
     slideshow: openSlideshow,
-    'name-skip': () => confirmName(''),
+    'name-skip': () => (renaming ? closeName() : confirmName('')),
     'name-ok': () => confirmName($('.name-field', root).value),
     'ss-prev': () => ssGo(ssIdx - 1),
     'ss-next': () => ssGo(ssIdx + 1),
@@ -213,7 +218,7 @@ function pickCareer(idx) {
   resetFlip();
   updateWho();
   showStep('card');
-  openName();
+  openName(false);
 }
 
 // ---------------- Tên bé ----------------
@@ -221,11 +226,14 @@ function setGender(g) {
   gender = g === 'girl' ? 'girl' : 'boy';
   $$('.gender-chip', root).forEach((c) => c.classList.toggle('selected', c.dataset.gender === gender));
 }
-function openName() {
+function openName(isRename) {
+  renaming = !!isRename;
+  genderTouched = false;
   const modal = $('[data-modal="name"]', root);
   const field = $('.name-field', root);
-  field.value = kidName;
+  field.value = renaming ? kidName : '';
   setGender(gender);
+  $('[data-act="name-skip"]', root).textContent = renaming ? 'Huỷ' : 'Bỏ qua';
   $('.name-chips', root).innerHTML = store.kidInfo()
     .map((k) => `<button class="chip" data-name="${esc(k.name)}">${esc(k.name)}</button>`).join('');
   modal.hidden = false;
@@ -236,12 +244,18 @@ function closeName() {
   if (!m) return;
   $('.name-field', root).blur();   // để phím Space hoạt động ngay sau khi đóng
   m.hidden = true;
+  renaming = false;
 }
 function confirmName(name) {
-  kidName = (name || '').trim();
-  // Tên có trong danh sách kèm giới tính → tự chọn hình bé trai/bé gái
-  const known = store.kidInfo().find((k) => store.normalize(k.name) === store.normalize(kidName));
-  if (known?.gender) setGender(known.gender);
+  let n = (name || '').trim();
+  // Tên có trong danh sách → dùng đúng cách viết trong danh sách ("bin" → "Bin")
+  // và tự chọn hình bé trai/bé gái, trừ khi MC vừa tự bấm chọn.
+  const known = n && store.kidInfo().find((k) => store.normalize(k.name) === store.normalize(n));
+  if (known) {
+    n = known.name;
+    if (known.gender && !genderTouched) setGender(known.gender);
+  }
+  kidName = n;
   closeName();
   updateWho();
   reveal();
@@ -253,20 +267,33 @@ function updateWho() {
 }
 
 // ---------------- Lật thẻ ----------------
+// Úp thẻ lại ngay (không chạy hiệu ứng lật ngược) và huỷ lần lật đang chạy dở
 function resetFlip() {
-  $('.flip', root).classList.remove('flipped');
+  if (!root) return;
+  renderSeq++;
+  const flip = $('.flip', root);
+  flip.style.transition = 'none';
+  flip.classList.remove('flipped');
+  void flip.offsetWidth;
+  flip.style.transition = '';
+  $('.card-img', root).removeAttribute('src');
   $('[data-act="keep"]', root).disabled = true;
   lastBlob = null;
 }
 
 async function reveal() {
   if (!career) return;
-  const seq = ++renderSeq;
-  busy = true;
   resetFlip();
-  const blob = await renderCard();
+  const seq = renderSeq;
+  let blob;
+  try {
+    blob = await renderCard();
+  } catch (err) {
+    console.error(err);
+    if (seq === renderSeq) toast('Chưa vẽ được thẻ. Bấm vào tên bé ở dưới để thử lại nhé', 3500);
+    return;
+  }
   if (seq !== renderSeq) return;      // MC đã đổi tên/nghề trong lúc vẽ
-  lastBlob = blob;
   if (lastUrl) URL.revokeObjectURL(lastUrl);
   lastUrl = URL.createObjectURL(blob);
   const img = $('.card-img', root);
@@ -280,8 +307,8 @@ async function reveal() {
   if (seq !== renderSeq) return;
   sfx.sparkle();
   sparkles($('.flip-box', root));
+  lastBlob = blob;                    // chỉ cho lưu khi thẻ đã lật xong
   $('[data-act="keep"]', root).disabled = false;
-  busy = false;
 }
 
 function sparkles(box) {
@@ -312,9 +339,16 @@ function fitFont(c, text, weight, family, size, maxW, min) {
 }
 
 async function renderCard() {
-  const kid = await svgToImage(kidSVG(career.key, gender, 460, 540));
-  if (!frameImg) frameImg = await imageWithOverride('assets/props/frame.png', frameSVG());
-  await document.fonts.ready;
+  const name = kidName || 'bé yêu';
+  const job = `là ${career.name}${career.emoji ? ' ' + career.emoji : ''}`;
+  const footer = `Thôi nôi bé ${store.babyName()} · Giáng sinh ${new Date().getFullYear()}`;
+  const [kid] = await Promise.all([
+    svgToImage(kidSVG(career.key, gender, 460, 540)),
+    // Nạp đủ nét chữ tiếng Việt (ư, ơ, ố…) cho đúng các chữ sắp vẽ, tránh canvas vẽ bằng font dự phòng
+    document.fonts.load('700 100px "Dancing Script"', name + job).catch(() => {}),
+    document.fonts.load('600 40px "Be Vietnam Pro"', `MAI NÀY ${footer}`).catch(() => {}),
+  ]);
+  if (!frameImg) frameImg = await svgToImage(frameSVG());
 
   const cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
@@ -355,7 +389,6 @@ async function renderCard() {
   c.fillStyle = '#fbe7b5';
   c.fillText('MAI NÀY', cx, 430);
 
-  const name = kidName || 'bé yêu';
   const fam = `"Dancing Script", ${emojiFont}, cursive`;
   fitFont(c, name, 700, fam, 170, 740, 80);
   c.save();
@@ -365,7 +398,6 @@ async function renderCard() {
   c.fillText(name, cx, 570);
   c.restore();
 
-  const job = `là ${career.name}${career.emoji ? ' ' + career.emoji : ''}`;
   fitFont(c, job, 700, fam, 104, 760, 56);
   c.fillStyle = '#fdf3df';
   c.fillText(job, cx, 730);
@@ -384,20 +416,34 @@ async function renderCard() {
   c.stroke();
   c.font = '600 30px "Be Vietnam Pro", sans-serif';
   c.fillStyle = '#fdf3df';
-  c.fillText(`Thôi nôi bé ${store.babyName()} · Giáng sinh ${new Date().getFullYear()}`, cx, ry + 39);
+  c.fillText(footer, cx, ry + 39);
 
   if (frameImg) c.drawImage(frameImg, 0, 0, W, H);
   return new Promise((r) => cv.toBlob(r, 'image/jpeg', 0.92));
 }
 
 async function keep() {
-  if (!lastBlob || busy) return;
-  await addPhoto({ blob: lastBlob, name: kidName, career: career?.name || '', emoji: career?.emoji || '', ts: Date.now() });
+  if (!lastBlob || saving) return;    // chặn bấm 2 lần liền → lưu trùng
+  saving = true;
+  const btn = $('[data-act="keep"]', root);
+  btn.disabled = true;
+  const blob = lastBlob;
   lastBlob = null;
-  sfx.sparkle();
-  toast('Đã lưu thẻ vào album ✨');
-  showStep('pick');
-  refreshCount();
+  try {
+    await addPhoto({ blob, name: kidName, career: career?.name || '', emoji: career?.emoji || '', ts: Date.now() });
+    sfx.sparkle();
+    toast('Đã lưu thẻ vào album ✨');
+    resetFlip();
+    showStep('pick');
+    refreshCount();
+  } catch (err) {
+    console.error(err);
+    lastBlob = blob;
+    btn.disabled = false;
+    toast('Chưa lưu được thẻ, thử bấm Lưu thẻ lần nữa nhé', 3500);
+  } finally {
+    saving = false;
+  }
 }
 
 async function refreshCount() {

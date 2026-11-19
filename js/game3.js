@@ -8,7 +8,9 @@ const TABLE_MODE_FROM = 31;     // trên 30 khách: bánh hiện số bàn
 const BAKE_MS = 6000;
 
 let root, tray;
+let active = false;             // đang ở màn hình lò nướng
 let baking = false;
+let bakeId = 0;                 // tăng khi huỷ lượt nướng (rời màn hình giữa chừng)
 let shuffleTimer = 0;
 let lastWinner = null;          // lượt vừa bốc (để Bốc lại)
 
@@ -85,10 +87,14 @@ export function init(section) {
 }
 
 export function enter() {
-  if (!baking) render();
+  active = true;
+  render();
 }
 
+// Rời màn hình khi đang nướng → huỷ lượt đó (chưa ai trúng), lần sau vào lại nướng từ đầu
 export function leave() {
+  active = false;
+  if (baking) { bakeId++; baking = false; }
   clearInterval(shuffleTimer);
 }
 
@@ -106,9 +112,22 @@ function pool() {
   return store.guests().filter((g) => !out.has(g.id));
 }
 const tableMode = () => store.guests().length >= TABLE_MODE_FROM;
+// Chữ trên bánh: số bàn (khi đông khách) hoặc tên. Khách không ghi bàn thì hiện tên.
+const cookieLabel = (g) => (tableMode() ? (g.tableNo ? `Bàn ${g.tableNo}` : (g.table || g.name)) : g.name);
+
+// Lượt đang bốc = lượt đầu tiên (theo thứ tự giải thấp → cao) chưa đủ người trúng.
+// Đếm theo từng giải nên vẫn đúng khi MC sửa số lượng / thứ tự giải giữa chừng.
 function currentSlot() {
   const slots = store.prizeSlots();
-  return { slot: slots[ovenState().winners.length] || null, total: slots.length };
+  const won = new Map();
+  ovenState().winners.forEach((w) => won.set(w.prize, (won.get(w.prize) || 0) + 1));
+  const need = new Map();
+  const slot = slots.find((s) => {
+    const k = (need.get(s.label) || 0) + 1;
+    need.set(s.label, k);
+    return (won.get(s.label) || 0) < k;
+  }) || null;
+  return { slot, total: slots.length };
 }
 
 // ---------------- Hiển thị ----------------
@@ -126,6 +145,9 @@ function renderPrize() {
   const btn = $('[data-act="bake"]', root);
   if (!store.prizeSlots().length) {
     setPrize('Chưa có giải', 'Vào Cài đặt để nhập danh sách giải thưởng', '');
+    btn.disabled = true;
+  } else if (!store.guests().length) {
+    setPrize('Chưa có khách', 'Vào Cài đặt để nhập danh sách khách mời', '');
     btn.disabled = true;
   } else if (!slot) {
     setPrize('Đã trao hết giải 🎉', 'Cảm ơn cả nhà đã tham gia!', '');
@@ -164,8 +186,8 @@ function cookieLabels() {
     const seen = new Set();
     const tables = [];
     for (const g of shuffle(p)) {
-      const t = g.tableNo || g.table || '?';
-      if (!seen.has(t)) { seen.add(t); tables.push(g.tableNo ? `Bàn ${g.tableNo}` : (g.table || '?')); }
+      const l = cookieLabel(g);
+      if (!seen.has(l)) { seen.add(l); tables.push(l); }
     }
     return tables.slice(0, 18);
   }
@@ -208,11 +230,13 @@ function layoutCookies(order) {
 
 // ---------------- Nướng & bốc ----------------
 async function bake() {
-  if (baking) return;
+  if (baking || !active) return;
   const { slot } = currentSlot();
   const p = pool();
   if (!slot || !p.length) return;
   baking = true;
+  const id = ++bakeId;
+  const cancelled = () => id !== bakeId;
   lastWinner = null;
   const g3 = root.querySelector('.g3');
   $('[data-act="bake"]', root).disabled = true;
@@ -234,17 +258,20 @@ async function bake() {
   const n = $$('.cookie', tray).length;
   shuffleTimer = setInterval(() => layoutCookies(shuffle([...Array(n).keys()])), 650);
   await sleep(BAKE_MS - 600);
+  if (cancelled()) return;
   clearInterval(shuffleTimer);
   await sleep(600);
+  if (cancelled()) return;
 
   // ting! cửa lò mở
   sfx.ting();
   g3.classList.add('open');
   await sleep(700);
+  if (cancelled()) return;
 
   // chọn người trúng
   const winner = p[randInt(p.length)];
-  const label = tableMode() ? (winner.tableNo ? `Bàn ${winner.tableNo}` : winner.table) : winner.name;
+  const label = cookieLabel(winner);
   const cookies = $$('.cookie', tray);
   let src = cookies.find((c) => $('.ck-tag', c).textContent === label) || cookies[randInt(cookies.length)];
   $('.ck-tag', src).textContent = label;
@@ -304,5 +331,5 @@ async function redraw() {
   lastWinner = null;
   render();
   await sleep(500);
-  bake();
+  if (active) bake();
 }

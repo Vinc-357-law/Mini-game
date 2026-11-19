@@ -22,6 +22,8 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 | 4 | Game 3 – Lò nướng bánh gừng may mắn | ✅ Xong |
 | 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ✅ Xong (sau đó bỏ ở giai đoạn 6) |
 | 6 | Đổi tông đỏ – xanh lá, bỏ webcam: Game 1 thành "Thẻ ước mơ", nhấp đúp `index.html` là chạy | ✅ Xong |
+| 7 | Rà soát & sửa lỗi logic toàn bộ 3 game + Cài đặt; chỉ còn một cách mở web | ✅ Xong |
+| 8 | Phong cách "cute" (sticker, sổ tay, chữ tròn) giữ nguyên bảng màu đỏ – xanh lá | ⏳ Chờ duyệt hướng làm |
 
 ## Nhật ký tiến độ
 
@@ -118,7 +120,34 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 **Sửa trong lúc test**: gõ tay tên bé có trong danh sách (vd. "Bin | trai") vẫn ra hình bé gái của bé trước → giờ web tự tra giới tính theo tên.
 **Lưu ý khi sửa code**: sửa file trong `js/` xong phải chạy `node tools/build.mjs` để cập nhật `js/app.bundle.js`.
 
+### 19/11/2026 — Giai đoạn 7: Sửa lỗi logic ✅
+**Yêu cầu**: sửa các lỗi logic.
+**Đã sửa**
+| Chỗ | Lỗi | Cách sửa |
+|---|---|---|
+| Cách mở web | Có 2 cách mở (nhấp đúp `index.html` và `Mo-web.bat` qua localhost) → trình duyệt lưu dữ liệu ở 2 nơi khác nhau, nhập ở cách này không thấy ở cách kia; viền PNG riêng chỉ chạy ở một cách | Bỏ `Mo-web.bat` + `tools/serve.ps1` và tuỳ chọn viền PNG. Chỉ còn nhấp đúp `index.html`. Nhạc `bgm.mp3` vẫn dùng được |
+| Game 1 | Bấm "Lưu thẻ" 2 lần nhanh (hoặc `Space` 2 lần) → album lưu trùng 2 thẻ | Khoá nút ngay khi bắt đầu lưu; lưu lỗi thì báo và cho bấm lại |
+| Game 1 | Đang sửa tên mà bấm `Esc` → tên bé bị xoá, thẻ vẽ lại không tên | Khi sửa tên: `Esc` / nút **Huỷ** chỉ đóng hộp, giữ tên cũ. Lần đầu mở: `Esc` vẫn là Bỏ qua tên |
+| Game 1 | Đổi nghề trong lúc thẻ đang vẽ/lật → thẻ của nghề cũ có thể lật ra, nút Lưu bật với thẻ cũ; mở nghề mới thấy thẻ cũ quay ngược | Mỗi lần lật có số thứ tự, lần cũ tự dừng; úp thẻ lại ngay không chạy hiệu ứng |
+| Game 1 | MC bấm Bé trai/Bé gái nhưng bé có trong danh sách với giới tính khác → web tự đổi lại | Lựa chọn của MC được ưu tiên |
+| Game 1 | Gõ `bin` thì thẻ ghi "bin" | Tự dùng đúng tên trong danh sách ("Bin") |
+| Game 1 | Có thể vẽ chữ tiếng Việt (ư, ơ, ố…) bằng font dự phòng nếu font chưa kịp tải | Nạp font cho đúng các chữ sắp vẽ trước khi vẽ thẻ |
+| Cài đặt | Ghi `bé gái`, `con trai`, `nữ`… không được hiểu | Hiểu được nhiều cách ghi |
+| Cài đặt | Gõ ô này rồi sang ô khác trong 0,35 giây → ô trước **không được lưu** | Chuyển ô là lưu ngay ô trước; cũng lưu khi rời màn hình, đóng trang |
+| Cài đặt | Gõ xong bấm ngay Xuất / Khôi phục mẫu → file xuất thiếu dòng vừa gõ / dữ liệu mẫu bị ghi đè lại | Lưu hết trước khi Xuất, Nhập, Làm lại |
+| Cài đặt | Nhập lại đúng file sao lưu vừa nhập → không có gì xảy ra | Cho chọn lại cùng một file |
+| Game 2 | Bấm Hoàn tác 2 lần liền → dữ liệu gỡ 2 món nhưng trên cây vẫn còn 1 món | Gỡ đúng món + hộp quà theo mã của từng lượt |
+| Game 2 | Đang kéo đồ mà rời màn hình → món đó trong khay bị mờ mãi | Dọn trạng thái kéo khi rời màn hình |
+| Game 2 | Đang kéo mà bấm `Space` thắp sáng → vẫn treo được lên cây | Cây đã thắp sáng thì món đồ bay về khay |
+| Game 2 | Gõ `bống` thì hộp quà ghi "bống" | Tự dùng đúng tên trong danh sách |
+| Game 3 | Đang nướng mà bấm sang màn khác → lò vẫn chạy ngầm và **ghi một người trúng** không ai thấy; quay lại thấy màn công bố cũ | Rời màn hình là huỷ lượt nướng, chưa ai trúng |
+| Game 3 | Đang bốc theo thứ tự "người thứ n", sửa số lượng giải giữa chừng → bốc nhầm giải (giải đã đủ người bị bốc thêm, giải thiếu người bị bỏ qua) | Đếm số người đã trúng của từng giải |
+| Game 3 | Đông khách (≥31), khách không ghi bàn → bánh hiện "?" | Hiện tên khách |
+| Game 3 | Chưa nhập khách nào → báo "Không còn khách nào trong lò" (khó hiểu) | Báo "Chưa có khách — vào Cài đặt" |
+
+**Đã kiểm tra** (Edge headless, mở bằng `file://`, có kịch bản cho từng lỗi trên): Space 2 lần chỉ lưu 1 thẻ; sửa tên + Esc giữ tên; đổi nghề giữa chừng không lật thẻ cũ; `bin` → "Bin" bé trai; Bống + MC bấm Bé trai → bé trai; `Tí | bé gái` → bé gái; Cài đặt gõ 2 ô liên tiếp đều lưu, gõ rồi khôi phục mẫu ngay → đúng dữ liệu mẫu, gõ rồi rời màn → đã lưu; Hoàn tác 2 lần → cây, quà, dữ liệu, bộ đếm đều về 0; rời màn giữa lúc kéo → khay bình thường; rời lò giữa lúc nướng → 0 người trúng, vào lại lò sạch; tăng số lượng Giải A sau khi đã bốc Giải B → đang bốc "Giải A, Lượt 2 / 2"; 32 khách có 1 người không ghi bàn → không có bánh "?". Chạy lại toàn bộ kịch bản cũ: đạt, Console không lỗi.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
-1. Nhấp đúp `index.html`, nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
+1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
 2. Thử trên máy chiếu/TV thật: bấm `F` toàn màn hình, kiểm tra màu, cỡ chữ và âm lượng.
 3. Chạy thử xong → Cài đặt → Làm lại từ đầu (xoá thẻ ước mơ, cây thông, bốc thăm).

@@ -149,7 +149,7 @@ function updateCounter() {
 
 function makeOrnament(it, animate) {
   const n = el(`
-    <div class="orn ${animate ? 'swing' : ''}" style="left:${it.x}%;top:${it.y}%">
+    <div class="orn ${animate ? 'swing' : ''}" ${it.id ? `data-id="${it.id}"` : ''} style="left:${it.x}%;top:${it.y}%">
       <div class="orn-art">${ornamentSVG(it.type)}</div>
       ${it.kid ? `<span class="orn-name">${esc(it.kid)}</span>` : ''}
     </div>`);
@@ -168,7 +168,7 @@ function giftSlot(i) {
 function makeGift(it, i, animate) {
   const { dx, dy, row } = giftSlot(i);
   const n = el(`
-    <div class="gift ${animate ? 'drop' : ''}" style="--dx:${dx};--dy:${dy};z-index:${50 - row}">
+    <div class="gift ${animate ? 'drop' : ''}" data-id="${it.id}" style="--dx:${dx};--dy:${dy};z-index:${50 - row}">
       <div class="gift-art">${giftSVG(it.color ?? i)}</div>
       <span class="gift-tag">${esc(it.kid)}</span>
     </div>`);
@@ -210,7 +210,8 @@ function onDragEnd(e) {
   if (!drag) return;
   const { type, ghost, startRect, size } = drag;
   $$('.tray-item', root).forEach((t) => t.classList.remove('picked'));
-  if (e.type === 'pointerup' && overTree(e.clientX, e.clientY)) {
+  // (cây đã thắp sáng giữa lúc đang kéo, ví dụ bấm Space → không treo nữa)
+  if (e.type === 'pointerup' && !treeState().lit && overTree(e.clientX, e.clientY)) {
     const r = treeBox.getBoundingClientRect();
     const x = ((e.clientX - r.left) / r.width) * 100;
     const y = ((e.clientY - r.top) / r.height) * 100;
@@ -228,11 +229,13 @@ function onDragEnd(e) {
   }
 }
 
+// Rời màn hình giữa lúc đang kéo: dọn món đồ đang cầm, trả khay về bình thường
 function endDrag() {
   if (!drag) return;
   drag.ghost.remove();
   drag = null;
   window.removeEventListener('pointermove', onDragMove);
+  $$('.tray-item', root).forEach((t) => t.classList.remove('picked'));
 }
 
 // ---------------- Chọn tên bé ----------------
@@ -271,9 +274,11 @@ function cancelPending() {
 }
 
 function confirmKid(raw) {
-  const name = (raw || '').trim();
+  const typed = (raw || '').trim();
   if (!pending) return;
-  if (!name) { $('.kid-field', root).focus(); toast('Chọn hoặc gõ tên bé nhé'); return; }
+  if (!typed) { $('.kid-field', root).focus(); toast('Chọn hoặc gõ tên bé nhé'); return; }
+  // Gõ tay tên có trong danh sách → dùng đúng cách viết trong danh sách ("bin" → "Bin")
+  const name = store.kids().find((k) => store.normalize(k) === store.normalize(typed)) || typed;
   if (isReceived(name)) { toast(`Bạn ${name} đã nhận quà rồi`); return; }
 
   const items = treeState().items;
@@ -289,6 +294,7 @@ function confirmKid(raw) {
   store.update((s) => { s.tree.items.push(item); });
 
   // gắn tên dưới món đồ vừa treo
+  pending.node.dataset.id = item.id;
   pending.node.insertAdjacentHTML('beforeend', `<span class="orn-name">${esc(name)}</span>`);
   pending = null;
   closeKid();
@@ -322,10 +328,10 @@ function undo() {
   if (!items.length) return;
   const last = items[items.length - 1];
   store.update((s) => { s.tree.items.pop(); });
-  const orns = $$('.orn', ornLayer);
-  const gifts = $$('.gift', pile);
-  [orns[orns.length - 1], gifts[gifts.length - 1]].forEach((n) => {
+  // Gỡ đúng món đồ + hộp quà của lượt này (theo id), kể cả khi bấm Hoàn tác liên tục
+  [$(`.orn[data-id="${last.id}"]`, ornLayer), $(`.gift[data-id="${last.id}"]`, pile)].forEach((n) => {
     if (!n) return;
+    n.removeAttribute('data-id');
     n.classList.add('fade-out');
     setTimeout(() => n.remove(), 400);
   });
