@@ -119,8 +119,15 @@ export function careerKey(name) {
   return hit ? hit[1] : 'generic';
 }
 
+// Tên bé để hiện to trên màn hình. Bỏ trống → "Bé yêu".
 export function babyName() {
-  return (state.settings.babyName || '').trim() || 'bé';
+  return (state.settings.babyName || '').trim() || 'Bé yêu';
+}
+// Cụm "bé Na" để ghép câu ("Thôi nôi bé Na"). Tên đã bắt đầu bằng "Bé" thì không thêm nữa.
+export function babyPhrase() {
+  const n = (state.settings.babyName || '').trim();
+  if (!n) return 'bé yêu';
+  return /^bé(\s|$)/.test(n.normalize('NFC').toLowerCase()) ? n : `bé ${n}`;
 }
 
 export function careers() {

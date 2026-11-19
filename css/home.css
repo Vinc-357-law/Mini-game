@@ -76,7 +76,9 @@
 .baby-name {
   position: relative; isolation: isolate; margin: .06em 0 0; padding: 0 .16em;
   font-family: var(--font-round); font-weight: 800; line-height: 1.12; letter-spacing: .01em;
-  font-size: clamp(4rem, min(14vw, 18.5vh), 10.5rem);
+  white-space: nowrap;
+  /* --name-k < 1 khi tên quá dài (app.js thu nhỏ cho vừa bề ngang) */
+  font-size: calc(clamp(4rem, min(14vw, 18.5vh), 10.5rem) * var(--name-k, 1));
   color: #fff;
 }
 .baby-name::before, .baby-name::after {

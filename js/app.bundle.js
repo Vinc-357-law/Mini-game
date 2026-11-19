@@ -126,8 +126,15 @@ function careerKey(name) {
   return hit ? hit[1] : 'generic';
 }
 
+// Tên bé để hiện to trên màn hình. Bỏ trống → "Bé yêu".
 function babyName() {
-  return (state.settings.babyName || '').trim() || 'bé';
+  return (state.settings.babyName || '').trim() || 'Bé yêu';
+}
+// Cụm "bé Na" để ghép câu ("Thôi nôi bé Na"). Tên đã bắt đầu bằng "Bé" thì không thêm nữa.
+function babyPhrase() {
+  const n = (state.settings.babyName || '').trim();
+  if (!n) return 'bé yêu';
+  return /^bé(\s|$)/.test(n.normalize('NFC').toLowerCase()) ? n : `bé ${n}`;
 }
 
 function careers() {
@@ -182,7 +189,7 @@ function prizeSlots() {
   });
   return slots;
 }
-return { save, update, onChange, resetTree, resetOven, resetSettingsToSample, exportJSON, importJSON, normalize, slug, careerKey, babyName, careers, kidInfo, guests, prizeSlots, SAMPLE, getState, settings, lines, kids };
+return { save, update, onChange, resetTree, resetOven, resetSettingsToSample, exportJSON, importJSON, normalize, slug, careerKey, babyName, babyPhrase, careers, kidInfo, guests, prizeSlots, SAMPLE, getState, settings, lines, kids };
 })();
 
 // ===== js/audio.js =====
@@ -1862,7 +1869,7 @@ function fitFont(c, text, weight, family, size, maxW, min) {
 async function renderCard() {
   const name = kidName || 'bé yêu';
   const job = `là ${career.name}${career.emoji ? ' ' + career.emoji : ''}`;
-  const footer = `Thôi nôi bé ${store.babyName()} · Giáng sinh ${new Date().getFullYear()}`;
+  const footer = `Thôi nôi ${store.babyPhrase()} · Giáng sinh ${new Date().getFullYear()}`;
   const [kid] = await Promise.all([
     svgToImage(kidSVG(career.key, gender, 460, 540)),
     // Nạp đủ nét chữ tiếng Việt (ư, ơ, ố…) cho đúng các chữ sắp vẽ, tránh canvas vẽ bằng font dự phòng
@@ -2853,11 +2860,34 @@ let current = null;
 const inited = new Set();
 
 function bindHome() {
-  $$('[data-bind="babyName"]').forEach((n) => { n.textContent = store.babyName(); });
+  const name = store.babyName();
+  $$('[data-bind="babyName"]').forEach((n) => { n.textContent = name; });
   // lớp viền trắng phía sau tên bé (kiểu chữ sticker) lấy chữ từ data-text
-  $$('.baby-name').forEach((n) => { n.dataset.text = store.babyName(); });
-  document.title = `Thôi nôi bé ${store.babyName()} · Mini game Giáng sinh`;
+  $$('.baby-name').forEach((n) => { n.dataset.text = name; });
+  document.title = `Thôi nôi ${store.babyPhrase()} · Mini game Giáng sinh`;
+  fitHome();
 }
+
+// Trang chính luôn vừa đúng một màn hình (máy chiếu không cuộn được):
+// tên bé dài → thu nhỏ chữ cho vừa bề ngang; cửa sổ thấp (laptop) → thu nhỏ cả khối giữa.
+function fitHome() {
+  const screen = $('#screen-home');
+  const home = $('.home', screen);
+  if (!home || !screen.classList.contains('active')) return;
+  const name = $('.baby-name', home);
+  home.style.zoom = '';
+  name.style.removeProperty('--name-k');
+  const maxW = home.clientWidth;
+  if (name.offsetWidth > maxW) name.style.setProperty('--name-k', (maxW / name.offsetWidth).toFixed(3));
+  if (matchMedia('(max-width: 900px)').matches) return;          // điện thoại: cho cuộn dọc
+  const cs = getComputedStyle(screen);
+  const avail = screen.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const need = home.offsetHeight + 16;                             // + chỗ cho băng dính, bóng đổ
+  if (need > avail) home.style.zoom = Math.max(0.55, avail / need).toFixed(3);
+}
+let fitRaf = 0;
+window.addEventListener('resize', () => { cancelAnimationFrame(fitRaf); fitRaf = requestAnimationFrame(fitHome); });
+document.fonts?.ready.then(fitHome);
 
 function go(name) {
   if (!SCREENS[name]) name = 'home';
@@ -2888,9 +2918,12 @@ function setMusic(on) {
 btnMusic.addEventListener('click', () => setMusic(!audio.isPlaying()));
 btnMusic.setAttribute('aria-pressed', String(!!store.getState().musicOn));
 // Trình duyệt chỉ cho phát âm thanh sau thao tác đầu tiên của người dùng
-function firstGesture() {
+function firstGesture(e) {
   audio.unlock();
-  if (store.getState().musicOn && !audio.isPlaying()) audio.startMusic();
+  // Thao tác đầu tiên chính là bấm nút nhạc / phím M → để nút đó tự bật (tránh vừa bật đã tắt)
+  const onMusicControl = (e.type === 'pointerdown' && e.target.closest?.('#btnMusic'))
+    || (e.type === 'keydown' && !isTyping(e.target) && (e.key || '').toLowerCase() === 'm');
+  if (!onMusicControl && store.getState().musicOn && !audio.isPlaying()) audio.startMusic();
   window.removeEventListener('pointerdown', firstGesture);
   window.removeEventListener('keydown', firstGesture);
 }
@@ -2925,6 +2958,9 @@ window.addEventListener('keydown', (e) => {
 
   if (e.code === 'Space') {
     e.preventDefault();
+    // Đang chọn một thẻ game bằng phím Tab → Space mở đúng thẻ đó
+    const card = current === 'home' && document.activeElement?.closest?.('.game-card');
+    if (card) { card.click(); return; }
     if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
     const section = $(SCREENS[current].el);
     const targets = $$('[data-primary]', section).filter((b) => visible(b) && !b.disabled);

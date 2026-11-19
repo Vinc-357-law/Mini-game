@@ -341,7 +341,7 @@ function fitFont(c, text, weight, family, size, maxW, min) {
 async function renderCard() {
   const name = kidName || 'bé yêu';
   const job = `là ${career.name}${career.emoji ? ' ' + career.emoji : ''}`;
-  const footer = `Thôi nôi bé ${store.babyName()} · Giáng sinh ${new Date().getFullYear()}`;
+  const footer = `Thôi nôi ${store.babyPhrase()} · Giáng sinh ${new Date().getFullYear()}`;
   const [kid] = await Promise.all([
     svgToImage(kidSVG(career.key, gender, 460, 540)),
     // Nạp đủ nét chữ tiếng Việt (ư, ơ, ố…) cho đúng các chữ sắp vẽ, tránh canvas vẽ bằng font dự phòng

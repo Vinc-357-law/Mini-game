@@ -24,6 +24,9 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 | 6 | Đổi tông đỏ – xanh lá, bỏ webcam: Game 1 thành "Thẻ ước mơ", nhấp đúp `index.html` là chạy | ✅ Xong |
 | 7 | Rà soát & sửa lỗi logic toàn bộ 3 game + Cài đặt; chỉ còn một cách mở web | ✅ Xong |
 | 8 | Phong cách "cute" (sticker, sổ tay, chữ tròn) giữ nguyên bảng màu đỏ – xanh lá | 🟡 Trang chính xong · chờ duyệt để làm Game 1, 2, 3 + Cài đặt |
+| 9 | Sửa lỗi logic lần 2 (vừa màn hình laptop, tên dài/trống, nút nhạc, phím Space, khay Game 2) | ✅ Xong |
+| 10 | Thêm chi tiết Noel cho sinh động | ⏳ Chờ duyệt hướng làm |
+| 11 | Game 1: mã QR cho khách đoán nghề bé bốc + Google Sheet + giao diện chủ tiệc | ⏳ Chờ duyệt hướng làm |
 
 ## Nhật ký tiến độ
 
@@ -162,6 +165,18 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 
 **Đã kiểm tra** (Edge headless, `file://`): chụp 5 cỡ màn hình + tên dài có dấu "Bảo Ngọc"; bấm vào thẻ 1, 2 → mở đúng game; `Space` → Game 1; nút nhạc đổi trạng thái; chạy lại toàn bộ kịch bản 3 game: đạt, không lỗi (trừ thông báo "không có bgm.mp3" khi bật nhạc — bình thường, web chuyển sang hộp nhạc có sẵn).
 **Tiếp theo (chờ duyệt)**: áp phong cách này cho Game 1 (thẻ chọn nghề + thẻ ước mơ + album), Game 2, Game 3, Cài đặt và các hộp thoại.
+
+### 19/11/2026 — Giai đoạn 9: Sửa lỗi logic lần 2 ✅
+| Chỗ | Lỗi | Cách sửa |
+|---|---|---|
+| Trang chính | Cửa sổ thấp (laptop 1366×768 trừ thanh trình duyệt ≈ 650px) → mất phần dưới, không cuộn được | Tự thu nhỏ cả khối giữa cho vừa chiều cao (`fitHome` trong `app.js`) |
+| Trang chính | Tên bé dài (vd. "Nguyễn Ngọc Bảo Anh") tràn ra ngoài màn hình | Tên luôn một dòng, tự thu nhỏ chữ cho vừa bề ngang |
+| Tên bé | Để trống → hiện "bé" và "Thôi nôi bé bé"; gõ "Bé Na" → "Thôi nôi bé Bé Na" | Trống → "Bé yêu"; tên đã có chữ "Bé" thì không thêm ("Thôi nôi Bé Na") |
+| Nhạc | Lần trước bật nhạc, lần sau bấm nút nhạc → nhạc vừa bật đã tắt, phải bấm 2 lần | Thao tác đầu tiên là nút nhạc / phím M thì để nút tự xử lý |
+| Phím tắt | Dùng Tab chọn thẻ 2 rồi bấm Space → lại mở Game 1 | Space mở đúng thẻ đang được chọn |
+| Game 2 | Màn hình hẹp hơn ~1400px → nút "Thắp sáng cây thông" bị cắt mất ở mép phải | Khay đồ trang trí tự co; dưới 1300px chỉ hiện hình món đồ (to, rõ hơn) |
+
+**Đã kiểm tra** (Edge headless, `file://`) ở 1366×657, 1280×720, 1024×768, 1600×900: trang chính vừa khít; tên 19 ký tự nằm gọn; nút nhạc bấm 1 lần là phát; Tab + Space mở đúng thẻ 2; tên trống → "Bé yêu", tên "Bé Na" → tiêu đề "Thôi nôi Bé Na"; khay Game 2 không bị cắt; chạy lại toàn bộ kịch bản 3 game: đạt.
 
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
