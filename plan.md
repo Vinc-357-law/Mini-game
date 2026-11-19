@@ -19,7 +19,7 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 | 2 | Game 1 – Photobooth "Con của tương lai" (bản Đơn giản) + Album | ✅ Xong |
 | 3 | Game 2 – Cùng trang trí cây thông | ✅ Xong |
 | 4 | Game 3 – Lò nướng bánh gừng may mắn | ✅ Xong |
-| 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ⏳ |
+| 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ✅ Xong (bám mặt chờ thử webcam thật) |
 
 ## Nhật ký tiến độ
 
@@ -76,3 +76,19 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 
 **Đã kiểm tra** (Edge headless): nướng → công bố → bốc lại → tiếp tục; bảng Đã trúng + Vắng mặt; chế độ 45 khách hiện số bàn.
 **Sửa trong lúc test**: nền màn công bố quá trong làm chữ lẫn với bảng phía sau; tên giải trong bảng bị cắt.
+
+### 19/11/2026 — Giai đoạn 5: Hoàn thiện ✅
+**Đã làm**
+- **Photobooth nâng cao**: công tắc trong Cài đặt. Bật lên thì MediaPipe Face Detector nhận diện khuôn mặt (~15 lần/giây), mũ tự bám theo đầu bé (chọn mặt to nhất, có làm mượt chuyển động), ô tròn hướng dẫn tự ẩn, dòng nhắc đổi thành "Mũ đang bám theo bé đấy! ✨". Không thấy mặt quá 0,9 giây hoặc không tải được thư viện thì tự quay về khung tròn cố định.
+- Thư viện MediaPipe 0.10.14 + model `blaze_face_short_range` **tải sẵn vào `assets/vendor/mediapipe`** (~19MB) để chạy không cần mạng; CDN chỉ là dự phòng.
+- `README.md`: hướng dẫn chạy, chuẩn bị dữ liệu, điều khiển cho MC từng game, phím tắt, tuỳ biến hình/nhạc, xử lý sự cố.
+- Kiểm tra giao diện ở bề ngang điện thoại (390px): không tràn ngang.
+
+**Đã kiểm tra**: cú pháp toàn bộ JS; bật bản nâng cao → thư viện tải từ máy (không dùng mạng), trạng thái `ready`, chụp vẫn bình thường.
+**Chưa kiểm tra được**: độ khớp của mũ với khuôn mặt thật (webcam giả lập không có mặt người) → cần thử với webcam thật, có thể phải tinh chỉnh vị trí/kích thước mũ trong `hatPlacement()` ở `js/game1.js`.
+
+## Việc cần làm trước ngày tiệc (người dùng)
+1. Mở bằng Live Server, nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé, khách, giải thưởng) → Xuất file sao lưu.
+2. Thử Photobooth với webcam thật trên đúng laptop sẽ dùng (cả bản thường và bản nâng cao); báo lại nếu mũ lệch để chỉnh.
+3. Thử trên máy chiếu/TV thật: bấm `F` toàn màn hình, kiểm tra cỡ chữ và âm lượng.
+4. Chạy thử xong → Cài đặt → Làm lại từ đầu (xoá ảnh, cây thông, bốc thăm).

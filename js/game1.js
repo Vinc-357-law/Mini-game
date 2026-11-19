@@ -243,7 +243,13 @@ async function pickCareer(idx) {
   showStep('camera');
   openName();
   const ok = await startCamera();
-  if (ok && store.settings().faceTracking) tracker.start(video);
+  if (ok && store.settings().faceTracking) {
+    tracker.start(video).then((loaded) => {
+      if (!loaded) toast('Chưa tải được bản bám khuôn mặt — dùng khung tròn cố định', 3500);
+    });
+  } else {
+    tracker.stop();
+  }
 }
 
 // ---------------- Tên bé ----------------
@@ -311,7 +317,13 @@ function hideMsg() { $('.cam-msg', root).hidden = true; }
 // ---------------- Vẽ khung hình ----------------
 function startLoop() {
   stopLoop();
-  const loop = () => { drawScene(ctx, true); rafId = requestAnimationFrame(loop); };
+  const guide = $('.cam-guide', root);
+  const loop = () => {
+    drawScene(ctx, true);
+    const msg = tracker.face(W, H) ? 'Mũ đang bám theo bé đấy! ✨' : 'Đưa mặt vào khung nhé!';
+    if (guide.textContent !== msg) guide.textContent = msg;
+    rafId = requestAnimationFrame(loop);
+  };
   rafId = requestAnimationFrame(loop);
 }
 function stopLoop() { cancelAnimationFrame(rafId); rafId = 0; }
@@ -335,9 +347,10 @@ function roundRect(c, x, y, w, h, r) {
 function hatPlacement() {
   const face = tracker.face(W, H);
   if (face) {
-    const w = face.w * 1.55;
+    // khung mặt của MediaPipe tính từ chân mày → cằm; đỉnh đầu cao hơn khoảng 0.35 lần bề rộng mặt
+    const w = face.w * 1.75;
     const h = (w * 200) / 300;
-    return { x: face.cx - w / 2, y: face.top - h + face.w * 0.32, w, h, tracked: true };
+    return { x: face.cx - w / 2, y: face.top - face.w * 0.28 - h * 0.92, w, h, tracked: true };
   }
   const w = FACE.r * 2 * 1.12;
   const h = (w * 200) / 300;

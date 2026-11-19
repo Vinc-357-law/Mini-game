@@ -53,6 +53,13 @@ function render() {
           <div class="field-top"><label for="f-babyName">Tên em bé thôi nôi</label></div>
           <input type="text" id="f-babyName" class="name-input" data-key="babyName" value="${esc(s.babyName)}" maxlength="30" autocomplete="off">
         </div>
+        <div class="field wide">
+          <label class="toggle-row">
+            <input type="checkbox" id="f-faceTracking" ${s.faceTracking ? 'checked' : ''}>
+            <span><b>Photobooth nâng cao:</b> mũ tự bám theo đầu bé (nhận diện khuôn mặt bằng MediaPipe)</span>
+          </label>
+          <p class="hint">Tắt = khung tròn cố định, chạy nhẹ và ổn định nhất. Bật = vui hơn nhưng cần máy đủ khoẻ; nếu không nhận ra mặt, web tự quay về khung tròn.</p>
+        </div>
         ${FIELDS.map((f) => `
           <div class="field">
             <div class="field-top"><label for="f-${f.key}">${f.label}</label><span class="count" data-count="${f.key}"></span></div>
@@ -94,6 +101,11 @@ function render() {
       refreshCounts();
       state.textContent = 'Đã lưu ✓';
     }, 350);
+  });
+
+  wrap.querySelector('#f-faceTracking').addEventListener('change', (e) => {
+    store.update((st) => { st.settings.faceTracking = e.target.checked; });
+    state.textContent = 'Đã lưu ✓';
   });
 
   wrap.querySelector('#btnExport').addEventListener('click', () => {
