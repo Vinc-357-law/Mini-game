@@ -87,6 +87,15 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 **Đã kiểm tra**: cú pháp toàn bộ JS; bật bản nâng cao → thư viện tải từ máy (không dùng mạng), trạng thái `ready`, chụp vẫn bình thường.
 **Chưa kiểm tra được**: độ khớp của mũ với khuôn mặt thật (webcam giả lập không có mặt người) → cần thử với webcam thật, có thể phải tinh chỉnh vị trí/kích thước mũ trong `hatPlacement()` ở `js/game1.js`.
 
+### 19/11/2026 — Sửa lỗi "web chưa chạy" ✅
+**Nguyên nhân**: máy chưa cài extension Live Server. Mở `index.html` bằng cách nhấp đúp (`file://`) thì trình duyệt chặn JavaScript module do CORS, nên trang đứng im, không game nào chạy.
+**Đã sửa**
+- Thêm **`Mo-web.bat`** + `tools/serve.ps1`: server tĩnh viết bằng PowerShell có sẵn trong Windows, không cần cài Node hay VS Code. Nhấp đúp là mở `http://localhost:5500/` (cổng bận thì tự chuyển cổng khác); trả đúng kiểu dữ liệu cho `.js`, `.wasm`, font.
+- Mở nhầm bằng `file://` thì trang hiện hộp hướng dẫn mở lại cho đúng, thay vì đứng im.
+- README cập nhật cách chạy.
+
+**Đã kiểm tra** qua chính server mới (Edge headless): trang chính → Game 1 chụp và lưu album → Game 2 treo 2 món và thắp sáng → Game 3 nướng, công bố, Tiếp tục; mở bằng `file://` hiện đúng hộp hướng dẫn.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Mở bằng Live Server, nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé, khách, giải thưởng) → Xuất file sao lưu.
 2. Thử Photobooth với webcam thật trên đúng laptop sẽ dùng (cả bản thường và bản nâng cao); báo lại nếu mũ lệch để chỉnh.

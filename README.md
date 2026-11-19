@@ -12,12 +12,14 @@ Web viết bằng HTML/CSS/JS thuần, không cần server riêng và **chạy �
 
 ## 1. Cách chạy
 
-1. Mở thư mục này bằng **VS Code**.
-2. Cài extension **Live Server** (tác giả Ritwick Dey) nếu máy chưa có.
-3. Chuột phải vào `index.html` → **Open with Live Server**.
-4. Trình duyệt mở địa chỉ dạng `http://127.0.0.1:5500/`. Dùng **Chrome** hoặc **Edge**.
+**Cách 1 (dễ nhất, không cần cài gì):** nhấp đúp **`Mo-web.bat`**.
+Một cửa sổ đen hiện ra và trình duyệt tự mở `http://localhost:5500/`. **Giữ cửa sổ đen mở** suốt buổi tiệc, vì đóng nó là tắt web.
 
-> ⚠️ Không mở `index.html` bằng cách nhấp đúp vào file. Trình duyệt sẽ chặn webcam và một số tính năng khác. Luôn mở qua Live Server.
+**Cách 2 (VS Code):** cài extension **Live Server** (tác giả Ritwick Dey), rồi chuột phải `index.html` → **Open with Live Server**.
+
+Nên dùng **Chrome** hoặc **Edge**.
+
+> ⚠️ Không mở `index.html` bằng cách nhấp đúp vào file. Trình duyệt sẽ chặn game và webcam, trang chỉ hiện hướng dẫn mở lại cho đúng.
 
 Lần đầu vào Photobooth, trình duyệt hỏi quyền dùng camera. Bấm **Cho phép**.
 

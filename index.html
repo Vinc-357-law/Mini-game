@@ -78,6 +78,20 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <!-- Nếu lỡ mở bằng cách nhấp đúp index.html: trình duyệt chặn JS module → hiện hướng dẫn -->
+  <div class="file-warning" id="fileWarning" hidden>
+    <div class="modal-card">
+      <h3>Cần mở web đúng cách</h3>
+      <p class="modal-sub">Trang đang được mở trực tiếp từ file nên trình duyệt chặn game và webcam.</p>
+      <ol>
+        <li>Mở thư mục dự án, nhấp đúp <b>Mo-web.bat</b> → web tự mở ở <b>http://localhost:5500</b>.</li>
+        <li>Hoặc trong VS Code: chuột phải <b>index.html</b> → <b>Open with Live Server</b>.</li>
+      </ol>
+    </div>
+  </div>
+  <script>
+    if (location.protocol === 'file:') document.getElementById('fileWarning').hidden = false;
+  </script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

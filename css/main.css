@@ -251,6 +251,10 @@ kbd {
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* ---------- Cảnh báo mở bằng file:// ---------- */
+.file-warning { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 24px; background: rgba(3, 8, 18, .88); }
+.file-warning ol { margin: 0; padding-left: 22px; line-height: 1.9; font-size: 1.05rem; }
+
 /* ---------- Màn chờ "đang xây dựng" ---------- */
 .placeholder { margin: auto; text-align: center; color: var(--muted); }
 
