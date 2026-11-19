@@ -17,7 +17,7 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 |---|---|---|
 | 1 | Khung chung: trang chính, cài đặt, lưu trữ, tuyết, nhạc, phím tắt, thư viện hình SVG | ✅ Xong |
 | 2 | Game 1 – Photobooth "Con của tương lai" (bản Đơn giản) + Album | ✅ Xong |
-| 3 | Game 2 – Cùng trang trí cây thông | ⏳ |
+| 3 | Game 2 – Cùng trang trí cây thông | ✅ Xong |
 | 4 | Game 3 – Lò nướng bánh gừng may mắn | ⏳ |
 | 5 | Hoàn thiện, README hướng dẫn MC, Photobooth Nâng cao (MediaPipe) | ⏳ |
 
@@ -49,3 +49,17 @@ Concept: **ấm cúng – vui – không ồn ào**. Nền xanh đêm, ánh vàn
 
 **Đã kiểm tra** (Edge headless + webcam giả lập): chọn nghề, nhập/bỏ qua tên, chụp bằng Space, giữ ảnh, album 2 ảnh, trình chiếu, Esc đóng trình chiếu.
 **Sửa trong lúc test**: phím Space không ăn ngay sau khi đóng hộp nhập tên; bấm Space liên tiếp có thể kích hoạt chụp hai lần; thanh trình chiếu che chữ trên ảnh.
+
+### 19/11/2026 — Giai đoạn 3: Game 2 Cây thông ✅
+**Đã làm**
+- Cây thông lớn 4 tầng (có tuyết đọng, dây kim tuyến, 28 bóng đèn chưa sáng, ngôi sao trên đỉnh, chậu đỏ).
+- Khay 8 món: quả châu đỏ, quả châu vàng, chuông, kẹo gậy, người tuyết, ngôi sao nhỏ, tất Noel, găng tay.
+- Kéo thả bằng chuột (cả cảm ứng): món đồ phát sáng khi đang ở trên cây; chỉ dính khi thả trong vùng lá cây (nhận diện đúng hình cây, không phải khung chữ nhật); thả ra ngoài thì bay về khay + nhắc nhẹ.
+- Treo xong: món đồ đung đưa nhẹ → hỏi tên bé (chọn từ danh sách, tên đã nhận quà bị gạch và khoá; hoặc gõ tên mới) → tên hiện dưới món đồ → hộp quà ghi tên rơi nhẹ xuống gốc cây + lấp lánh + tiếng chuông.
+- Quà xếp thành hàng dưới gốc (hàng dưới nhiều, lên trên ít dần), đủ chỗ cho 30+ bé.
+- Bộ đếm "x/y bạn nhỏ đã nhận quà" (tên mới gõ thêm được cộng vào tổng); đủ hết thì viền sáng vàng.
+- Hoàn tác: gỡ món vừa treo + hộp quà, trả lại tên cho bé. Huỷ trong hộp hỏi tên cũng gỡ món đồ.
+- Thắp sáng (nút hoặc Space): đèn sáng dần và "thở" chậm 2–4 giây mỗi bóng (không chớp), ngôi sao toả sáng, nền tối dịu, hai bên cây hiện "Merry Christmas" và "& Chúc mừng thôi nôi Na"; khay đồ ẩn đi cho ảnh tập thể gọn đẹp. Bấm lại để tắt đèn.
+- Toàn bộ trạng thái (đồ đã treo, quà, đèn) lưu lại, tải lại trang không mất.
+
+**Đã kiểm tra** (Edge headless, kéo thả thật bằng chuột giả lập): treo 6 món, thả trượt ra ngoài, tên đã nhận bị khoá, gõ tên mới, hoàn tác, thắp sáng bằng Space, tải lại trang vẫn giữ nguyên.
