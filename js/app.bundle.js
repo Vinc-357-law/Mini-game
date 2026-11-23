@@ -1457,30 +1457,54 @@ const blush = (x, y, rx = 13, ry = 7.5, c = PINK) => `<ellipse cx="${x}" cy="${y
 
 function mascotSVG(kind) {
   if (kind === 'cat') {
-    // Mèo trắng đốm cam đội mũ Noel, ló ra từ mép phải (thân khuất ngoài màn hình)
-    return svg('0 0 240 250', '100%', '100%', `
-      <defs><clipPath id="catHeadClip"><ellipse cx="112" cy="132" rx="84" ry="70"/></clipPath></defs>
-      ${tube('M206 176 Q252 132 222 92 Q214 82 204 90', FUR, 13)}
-      <path d="M233 118 Q238 104 228 96" stroke="${GINGER}" stroke-width="12" fill="none" stroke-linecap="round"/>
-      <path d="M118 160 Q190 128 250 150 L250 238 Q184 246 124 234 Q100 214 118 160 Z" fill="${FUR}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M196 142 Q232 138 250 152 L250 214 Q222 196 196 142 Z" fill="${GINGER}"/>
-      <path d="M42 110 L36 44 Q38 32 50 36 L106 76 Z" fill="${FUR}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M52 94 L50 54 L86 78 Z" fill="${PINK}"/>
-      <ellipse cx="112" cy="132" rx="84" ry="70" fill="${FUR}" stroke="${O}" stroke-width="5"/>
-      <g clip-path="url(#catHeadClip)"><path d="M24 124 Q40 70 104 60 Q88 92 98 120 Q60 108 24 124 Z" fill="${GINGER}"/></g>
-      <path d="M92 74 Q118 10 186 16 Q226 22 232 70 Q208 50 184 56 Q176 72 172 86 Z" fill="#d6423a" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M118 50 Q142 26 178 28" stroke="#ec6a5f" stroke-width="6" fill="none" stroke-linecap="round"/>
-      <path d="M80 92 Q130 58 190 80 Q196 92 188 100 Q130 78 86 108 Q74 102 80 92 Z" fill="#fffdf8" stroke="${O}" stroke-width="4.5" stroke-linejoin="round"/>
-      <circle cx="230" cy="76" r="15" fill="#fffdf8" stroke="${O}" stroke-width="4.5"/>
-      ${eyeBig(80, 138)}${eyeBig(140, 140)}
-      ${blush(58, 160)}${blush(162, 162)}
-      <path d="M110 152 L103 146 H117 Z" fill="#f08a80" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/>
-      <path d="M98 158 Q104 166 110 158 Q116 166 122 158" stroke="${O}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M40 148 L14 142 M40 156 L12 158 M184 150 L210 144 M184 158 L212 160" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
-      <ellipse cx="74" cy="206" rx="25" ry="17" fill="${FUR}" stroke="${O}" stroke-width="5"/>
-      <path d="M66 200 v10 M80 200 v10" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
-      <ellipse cx="136" cy="210" rx="25" ry="17" fill="${FUR}" stroke="${O}" stroke-width="5"/>
-      <path d="M128 204 v10 M142 204 v10" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`);
+    // Mèo trắng đốm cam đội mũ Noel, nằm bò trên cành thông phủ tuyết chìa ra từ mép phải:
+    // thân nằm dọc cành (khuất ngoài màn hình), đuôi thả xuống sau cành, 2 chân trước vắt qua cành,
+    // mũ đội trên đỉnh đầu, 2 tai ló ra 2 bên mũ.
+    const r = rng(91);
+    const greens = ['#1f5a43', '#24684d', '#2f7d5b', '#163f30', '#2b7055'];
+    const stickY = (x) => 214 - (x - 22) * 0.056;          // gần đúng đường cong cành M22 214 → 270 200
+    let needles = '', snow = '';
+    for (let x = 30; x <= 270; x += 8) {
+      const spread = x < 60 ? 12 : 22;                     // đầu cành thon lại
+      for (let k = 0; k < 4; k++) {
+        const nx = (x + (r() - 0.5) * 12).toFixed(0), ny = (stickY(x) + (r() - 0.35) * spread).toFixed(0);
+        needles += `<ellipse cx="${nx}" cy="${ny}" rx="${(11 + r() * 7).toFixed(0)}" ry="4.5" transform="rotate(${Math.round(r() * 180)} ${nx} ${ny})" fill="${greens[Math.floor(r() * greens.length)]}"/>`;
+      }
+    }
+    // tuyết đọng thành từng cục tròn trên mặt cành
+    for (let x = 34; x <= 262; x += 16) {
+      const w = 11 + r() * 6, y = stickY(x) - 7;
+      snow += `<ellipse cx="${x}" cy="${(y + 2).toFixed(0)}" rx="${(w + 1).toFixed(0)}" ry="7" fill="#cfe2f0"/>` +
+        `<ellipse cx="${x}" cy="${y.toFixed(0)}" rx="${w.toFixed(0)}" ry="${(5 + r() * 2.5).toFixed(1)}" fill="#fbfdff"/>`;
+    }
+    return svg('0 0 260 260', '100%', '100%', `
+      <defs><clipPath id="catHeadClip"><ellipse cx="112" cy="136" rx="80" ry="62"/></clipPath></defs>
+      ${tube('M240 198 Q258 230 238 246 Q224 255 214 244', FUR, 13)}
+      <path d="M224 252 Q215 251 214 244" stroke="${GINGER}" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <path d="M140 156 Q196 128 270 140 L270 206 L140 206 Z" fill="${FUR}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M204 136 Q244 130 270 144 L270 182 Q236 168 204 136 Z" fill="${GINGER}"/>
+      <path d="M46 118 L40 52 Q42 40 54 44 L100 82 Z" fill="${FUR}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M56 102 L54 62 L86 86 Z" fill="${PINK}"/>
+      <path d="M178 118 L184 52 Q182 40 170 44 L124 82 Z" fill="${FUR}" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M168 102 L170 62 L138 86 Z" fill="${PINK}"/>
+      <ellipse cx="112" cy="136" rx="80" ry="62" fill="${FUR}" stroke="${O}" stroke-width="5"/>
+      <g clip-path="url(#catHeadClip)"><path d="M26 132 Q40 84 100 74 Q86 104 96 132 Q60 120 26 132 Z" fill="${GINGER}"/></g>
+      <path d="M72 106 Q74 52 116 32 Q150 14 186 22 Q200 26 204 38 Q172 36 160 52 Q150 72 154 104 Z" fill="#d6423a" stroke="${O}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M92 70 Q104 44 132 34" stroke="#ec6a5f" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M58 110 Q112 70 166 110 Q170 122 160 124 Q112 90 64 124 Q54 122 58 110 Z" fill="#fffdf8" stroke="${O}" stroke-width="4.5" stroke-linejoin="round"/>
+      <circle cx="206" cy="34" r="13" fill="#fffdf8" stroke="${O}" stroke-width="4.5"/>
+      ${eyeBig(82, 146)}${eyeBig(142, 148)}
+      ${blush(60, 168)}${blush(164, 170)}
+      <path d="M112 160 L105 154 H119 Z" fill="#f08a80" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M100 166 Q106 174 112 166 Q118 174 124 166" stroke="${O}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M40 156 L14 150 M40 164 L12 166 M184 158 L210 152 M184 166 L212 168" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+      <g>${needles}</g>
+      ${tube('M270 200 Q160 202 22 214 M84 210 Q66 222 50 228', '#7a4e2c', 7)}
+      <g>${snow}</g>
+      <ellipse cx="80" cy="208" rx="22" ry="15" fill="${FUR}" stroke="${O}" stroke-width="5"/>
+      <path d="M73 203 v9 M87 203 v9" stroke="${O}" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="142" cy="205" rx="22" ry="15" fill="${FUR}" stroke="${O}" stroke-width="5"/>
+      <path d="M135 200 v9 M149 200 v9" stroke="${O}" stroke-width="3" stroke-linecap="round"/>`);
   }
   if (kind === 'deer') {
     // Tuần lộc mũi đỏ quàng khăn xanh, ló lên từ góc dưới bên trái

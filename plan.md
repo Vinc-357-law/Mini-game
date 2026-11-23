@@ -232,6 +232,16 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 
 **Chưa kiểm tra được**: chạy trên Google thật (cần tài khoản Google của bạn) → bạn làm theo README mục 7, bấm "Kiểm tra kết nối", rồi lấy 1–2 điện thoại quét thử.
 
+### 23/11/2026 — Sửa lỗi logic hình con mèo ở trang chính ✅
+**Yêu cầu**: con mèo ló ra ở mép phải trông vô lý. Có 3 lỗi: hai chân trước lơ lửng dưới cằm mà không tì vào đâu, mèo chỉ có một tai vì mũ che mất tai phải, và mũ vắt chéo qua trán chứ không đội trên đầu.
+**Đã làm** (`js/art.js` hình `mascot-cat`, `css/home.css` lớp `.m-cat`):
+- Thêm **cành thông phủ tuyết** chìa ra từ mép phải. Cành có gỗ nâu, lá thông, tuyết đọng thành cục. Mèo nằm bò trên cành: thân nằm dọc cành và khuất ngoài màn hình, hai chân trước vắt qua cành, đuôi thả xuống sau cành.
+- **Vẽ lại mũ Noel**: vành mũ ôm đỉnh đầu, chóp mũ ngả sang phải. **Hai tai** ló ra ở hai bên mũ.
+- CSS: khung hình vuông, mèo nằm sát mép hơn để chóp mũ và quả bông không bị khuất. Động tác đổi từ "trượt ra thụt vào" thành **cành nhún nhẹ** quanh gốc cành ở mép màn hình.
+- Giữ nguyên lời chúc khi bấm vào mèo và vị trí bong bóng lời chúc.
+
+**Đã kiểm tra**: Edge headless ở 1600×900, chụp và phóng to vùng con mèo: đủ hai tai, mũ đội đúng trên đầu, chân tì lên cành, đuôi thả sau cành.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
 2. Nối Google Sheet cho phần "Đoán xem bé bốc gì?" (README mục 7), bấm "Kiểm tra kết nối", lấy 1–2 điện thoại quét thử; xong vào Cài đặt → "Xoá phiếu đoán bé bốc gì".
