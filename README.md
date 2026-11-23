@@ -70,8 +70,8 @@ Dùng cho lễ bốc đồ của bé thôi nôi. Cần nối Google Sheet trư�
 Chưa nối Google Sheet hoặc mất mạng: vẫn làm được bước 2–4 trên laptop, chỉ không có phần khách đoán.
 
 ### Game 2: Cùng trang trí cây thông
-Bé kéo một món từ khay lên cây. Thả ra ngoài cây thì món đồ tự quay về khay. Treo xong, MC chọn tên bé (tên bé đã nhận quà bị gạch đi) → hộp quà ghi tên bé rơi xuống gốc cây, bé lên nhận quà thật.
-Treo nhầm thì bấm **Hoàn tác**. Cuối game bấm **Thắp sáng cây thông** để chụp ảnh tập thể.
+Cây thông ở bên trái, bảng **Đồ trang trí** ở bên phải. Bé kéo một món từ bảng lên cây. Thả ra ngoài cây thì món đồ tự quay về bảng. Treo xong, MC chọn tên bé (tên bé đã nhận quà bị gạch đi) → hộp quà ghi tên bé rơi xuống gốc cây, bé lên nhận quà thật.
+Treo nhầm thì bấm **Hoàn tác** (dưới bảng). Trang trí xong bấm **Thắp sáng cây thông**: bảng biến mất, cây sáng đèn, hiện lời chúc "Merry Christmas · Chúc mừng thôi nôi bé …" và ông già Noel đi xe tuần lộc bay ngang kéo dải băng **20.12.2026**. Đây là lúc chụp ảnh tập thể. Bấm **Tắt đèn cây thông** để quay lại trang trí tiếp.
 
 ### Game 3: Lò nướng bánh gừng may mắn
 Bấm **Nướng bánh** (hoặc `Space`): lò sáng dần, bánh nhảy và đổi chỗ, "ting!", rồi người trúng hiện ra giữa màn hình.

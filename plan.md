@@ -266,6 +266,17 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 
 **Đã kiểm tra** (Edge headless 1600×900): chụp nhiều thời điểm sau khi thắp đèn, xe vào từ mép phải, băng chữ đi theo sau, đi qua cây rồi ra mép trái; tắt đèn thì xe biến mất, tiêu đề hiện lại; không có lỗi console.
 
+### 23/11/2026 — Game 2: bố cục mới, cây bên trái, bảng đồ trang trí bên phải ✅
+**Yêu cầu**: cây thông sang trái và to hơn; bảng đồ trang trí sang phải, mỗi hàng 2 món; nút thắp đèn dưới bảng; thắp đèn thì bảng biến mất, hiện "Merry Christmas" + "thôi nôi bé Na" ở bên đó, ông già Noel bay ngang.
+**Đã làm** (`js/game2.js`, `css/game2.css`, README mục Game 2):
+- Thân màn chia 2 cột: **cây thông bên trái**, cao gần hết màn hình (to hơn trước khoảng 1,4 lần), hộp quà vẫn dưới gốc. Vệt sáng ấm trên tường và quầng sáng khi thắp đèn dời theo cây.
+- **Cột phải**: bảng "Đồ trang trí" 2 cột × 4 hàng (cỡ món đồ theo chiều cao màn hình để luôn vừa). Dưới bảng là **Hoàn tác** và **Thắp sáng cây thông**.
+- **Thắp đèn**: bảng và nút Hoàn tác biến mất; đúng chỗ bảng hiện "Merry Christmas / Chúc mừng thôi nôi / bé Na"; tiêu đề trên cùng mờ đi; xe tuần lộc kéo băng 20.12.2026 bay ngang **ngọn cây** (dời đường bay lên 14vh để không đè lời chúc); nút đổi thành "Tắt đèn cây thông" nhỏ, mờ.
+- Màn hẹp (≤ 900px): cây ở trên, bảng xuống dưới thành 4 cột.
+- Sửa thêm: đang mở hộp hỏi tên bé thì không thắp/tắt đèn được.
+
+**Đã kiểm tra** (Edge headless, có kéo thả thật): 1600×900, 1280×720, 1024×768. Kéo quả châu lên cây → hỏi tên → chọn "Bin" → quả châu có tên trên cây, hộp quà rơi xuống gốc, bộ đếm 1/12. Thắp đèn → bảng biến mất, lời chúc hiện ở cột phải, xe bay qua ngọn cây. Tắt đèn → bảng và tiêu đề hiện lại. Không có lỗi console.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
 2. Nối Google Sheet cho phần "Đoán xem bé bốc gì?" (README mục 7), bấm "Kiểm tra kết nối", lấy 1–2 điện thoại quét thử; xong vào Cài đặt → "Xoá phiếu đoán bé bốc gì".

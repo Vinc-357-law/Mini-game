@@ -16,16 +16,10 @@ export function init(section) {
   root.appendChild(el(`
     <div class="g2">
       <div class="g2-top">
-        <!-- Tiêu đề và lời chúc chồng lên nhau ở giữa: thắp đèn thì tiêu đề mờ đi, lời chúc hiện lên -->
-        <div class="g2-head">
-          <div class="g2-title">
-            <h2 class="screen-title">Cùng trang trí cây thông</h2>
-            <p class="screen-sub">Kéo một món đồ lên cây — treo xong là có quà!</p>
-          </div>
-          <div class="greet" aria-live="polite">
-            <span class="greet-xmas">Merry Christmas</span>
-            <span class="greet-baby">Chúc mừng thôi nôi <b class="greet-name"></b></span>
-          </div>
+        <!-- Tiêu đề ở giữa; thắp đèn thì mờ đi -->
+        <div class="g2-title">
+          <h2 class="screen-title">Cùng trang trí cây thông</h2>
+          <p class="screen-sub">Kéo một món đồ lên cây — treo xong là có quà!</p>
         </div>
         <div class="g2-counter"><b class="got">0</b> / <span class="total">0</span> bạn nhỏ đã nhận quà</div>
       </div>
@@ -40,29 +34,42 @@ export function init(section) {
         </div>
       </div>
 
-      <div class="g2-stage">
-        <div class="tree-box">
-          <div class="tree-art">${treeSVG()}</div>
-          <div class="ornament-layer"></div>
+      <!-- Trái: cây thông to + quà dưới gốc · Phải: bảng đồ trang trí 2 cột + nút; thắp đèn thì bảng nhường chỗ cho lời chúc -->
+      <div class="g2-main">
+        <div class="g2-stage">
+          <div class="tree-box">
+            <div class="tree-art">${treeSVG()}</div>
+            <div class="ornament-layer"></div>
+          </div>
+          <div class="gift-pile"></div>
         </div>
-        <div class="gift-pile"></div>
-      </div>
 
-      <div class="g2-bottom">
-        <button class="btn btn-ghost" data-act="undo" title="Gỡ món vừa treo">
-          <svg viewBox="0 0 24 24" class="ico"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg> Hoàn tác
-        </button>
-        <div class="g2-tray">
-          ${ORNAMENTS.map((o) => `
-            <div class="tray-item" data-type="${o.type}" title="${esc(o.name)}">
-              <div class="tray-orn">${ornamentSVG(o.type)}</div>
-              <span>${esc(o.name)}</span>
-            </div>`).join('')}
+        <div class="g2-side">
+          <div class="g2-panel">
+            <div class="g2-tray">
+              <h3 class="tray-title">Đồ trang trí</h3>
+              ${ORNAMENTS.map((o) => `
+                <div class="tray-item" data-type="${o.type}" title="${esc(o.name)}">
+                  <div class="tray-orn">${ornamentSVG(o.type)}</div>
+                  <span>${esc(o.name)}</span>
+                </div>`).join('')}
+            </div>
+            <div class="greet" aria-live="polite">
+              <span class="greet-xmas">Merry Christmas</span>
+              <span class="greet-baby">Chúc mừng thôi nôi</span>
+              <b class="greet-name"></b>
+            </div>
+          </div>
+          <div class="g2-actions">
+            <button class="btn btn-ghost" data-act="undo" title="Gỡ món vừa treo">
+              <svg viewBox="0 0 24 24" class="ico"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg> Hoàn tác
+            </button>
+            <button class="btn btn-primary" data-act="light" data-primary>
+              <svg viewBox="0 0 24 24" class="ico"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg>
+              <span class="light-label">Thắp sáng cây thông</span>
+            </button>
+          </div>
         </div>
-        <button class="btn btn-primary" data-act="light" data-primary>
-          <svg viewBox="0 0 24 24" class="ico"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg>
-          <span class="light-label">Thắp sáng cây thông</span>
-        </button>
       </div>
 
       <div class="modal" data-modal="kid" hidden>
@@ -122,11 +129,11 @@ function onClick(e) {
   })[btn.dataset.act]?.();
 }
 
-// Cây luôn giữ đúng tỉ lệ 600:720 và vừa khung
+// Cây luôn giữ đúng tỉ lệ 600:720 và vừa khung (khung trái — cây chiếm gần hết)
 function fitTree() {
   const stage = $('.g2-stage', root);
   if (!stage || !stage.clientHeight) return;
-  const h = Math.min(stage.clientHeight, (stage.clientWidth * 0.5 * 720) / 600);
+  const h = Math.min(stage.clientHeight, (stage.clientWidth * 0.9 * 720) / 600);
   treeBox.style.height = `${h}px`;
   treeBox.style.width = `${(h * 600) / 720}px`;
   root.style.setProperty('--gift', `${Math.max(38, Math.min(68, h * 0.095))}px`);
@@ -358,6 +365,7 @@ function undo() {
 
 // ---------------- Thắp sáng ----------------
 function toggleLight() {
+  if (pending) return;               // đang hỏi tên bé thì chưa cho thắp/tắt đèn
   const on = !treeState().lit;
   store.update((s) => { s.tree.lit = on; });
   setLit(on, true);
