@@ -247,6 +247,15 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 - Các phím tắt vẫn hoạt động như cũ; README mục 3 vẫn có bảng phím tắt.
 - Đã kiểm tra (Edge headless 1600×900): nội dung trang chính tự căn lại giữa màn hình, không vỡ bố cục.
 
+### 23/11/2026 — Game 2: tiêu đề ra giữa, thắp đèn thì đổi thành lời chúc ✅
+**Yêu cầu**: tiêu đề "Cùng trang trí cây thông" ra chính giữa. Khi thắp đèn thì tiêu đề biến mất, hiện "Merry Christmas" + "Chúc mừng thôi nôi bé Na". Bỏ 2 khối chữ hai bên cây.
+**Đã làm** (`js/game2.js`, `css/game2.css`):
+- Hàng trên chia 3 cột (trống · tiêu đề · bộ đếm) để tiêu đề luôn nằm đúng giữa màn hình. Bộ đếm quà vẫn ở góc phải.
+- Tiêu đề và lời chúc nằm chồng lên nhau ở cùng một chỗ. Thắp đèn: tiêu đề mờ đi, lời chúc hiện dần thành 2 dòng ("Merry Christmas" chữ to, "Chúc mừng thôi nôi bé Na" chữ nhỏ, tên lấy từ Cài đặt). Tắt đèn: lời chúc biến mất nhanh, tiêu đề hiện lại.
+- Bỏ 2 khối chữ "Merry / Christmas" bên trái và "& Chúc mừng thôi nôi Na" bên phải. Màn hẹp (≤ 900px) cũng hiện lời chúc ở giữa.
+
+**Đã kiểm tra** (Edge headless): 1600×900 và 1024×768, trạng thái chưa thắp → thắp → tắt lại đều đúng; chữ không đè lên ngôi sao trên ngọn cây; không có lỗi console.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
 2. Nối Google Sheet cho phần "Đoán xem bé bốc gì?" (README mục 7), bấm "Kiểm tra kết nối", lấy 1–2 điện thoại quét thử; xong vào Cài đặt → "Xoá phiếu đoán bé bốc gì".

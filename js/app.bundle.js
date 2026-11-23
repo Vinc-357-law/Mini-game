@@ -2882,16 +2882,21 @@ function init(section) {
   root.appendChild(el(`
     <div class="g2">
       <div class="g2-top">
-        <div>
-          <h2 class="screen-title">Cùng trang trí cây thông</h2>
-          <p class="screen-sub">Kéo một món đồ lên cây — treo xong là có quà!</p>
+        <!-- Tiêu đề và lời chúc chồng lên nhau ở giữa: thắp đèn thì tiêu đề mờ đi, lời chúc hiện lên -->
+        <div class="g2-head">
+          <div class="g2-title">
+            <h2 class="screen-title">Cùng trang trí cây thông</h2>
+            <p class="screen-sub">Kéo một món đồ lên cây — treo xong là có quà!</p>
+          </div>
+          <div class="greet" aria-live="polite">
+            <span class="greet-xmas">Merry Christmas</span>
+            <span class="greet-baby">Chúc mừng thôi nôi <b class="greet-name"></b></span>
+          </div>
         </div>
         <div class="g2-counter"><b class="got">0</b> / <span class="total">0</span> bạn nhỏ đã nhận quà</div>
       </div>
 
       <div class="g2-stage">
-        <div class="greet greet-left"><span>Merry</span><span>Christmas</span></div>
-        <div class="greet greet-right"><small>&amp; Chúc mừng thôi nôi</small><span class="greet-name"></span></div>
         <div class="tree-box">
           <div class="tree-art">${treeSVG()}</div>
           <div class="ornament-layer"></div>
@@ -3002,7 +3007,7 @@ function renderAll() {
     ornLayer.appendChild(makeOrnament(it, false));
     pile.appendChild(makeGift(it, i, false));
   });
-  $('.greet-name', root).textContent = store.babyName();
+  $('.greet-name', root).textContent = store.babyPhrase();
   setLit(treeState().lit, false);
   updateCounter();
 }
