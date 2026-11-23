@@ -47,12 +47,15 @@ export function init(section) {
         <div class="g2-side">
           <div class="g2-panel">
             <div class="g2-tray">
+              <i class="tray-holly" aria-hidden="true">${cardArt('st-holly-bunch')}</i>
               <h3 class="tray-title">Đồ trang trí</h3>
-              ${ORNAMENTS.map((o) => `
-                <div class="tray-item" data-type="${o.type}" title="${esc(o.name)}">
-                  <div class="tray-orn">${ornamentSVG(o.type)}</div>
-                  <span>${esc(o.name)}</span>
-                </div>`).join('')}
+              <div class="tray-grid">
+                ${ORNAMENTS.map((o) => `
+                  <div class="tray-item" data-type="${o.type}" title="${esc(o.name)}">
+                    <div class="tray-orn">${ornamentSVG(o.type)}</div>
+                    <span>${esc(o.name)}</span>
+                  </div>`).join('')}
+              </div>
             </div>
             <div class="greet" aria-live="polite">
               <span class="greet-xmas">Merry Christmas</span>

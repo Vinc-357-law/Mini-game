@@ -275,10 +275,21 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 - Màn hẹp (≤ 900px): cây ở trên, bảng xuống dưới thành 4 cột.
 - Sửa thêm: đang mở hộp hỏi tên bé thì không thắp/tắt đèn được.
 
-**Đã kiểm tra** (Edge headless, có kéo thả thật): 1600×900, 1280×720, 1024×768. Kéo quả châu lên cây → hỏi tên → chọn "Bin" → quả châu có tên trên cây, hộp quà rơi xuống gốc, bộ đếm 1/12. Thắp đèn → bảng biến mất, lời chúc hiện ở cột phải, xe bay qua ngọn cây. Tắt đèn → bảng và tiêu đề hiện lại. Không có lỗi console.
+**Đã kiểm tra** (Edge headless, có kéo thả thật): 1600×900, 1280×720, 1024×768 (bảng làm kiểu mới ở mục kế tiếp). Kéo quả châu lên cây → hỏi tên → chọn "Bin" → quả châu có tên trên cây, hộp quà rơi xuống gốc, bộ đếm 1/12. Thắp đèn → bảng biến mất, lời chúc hiện ở cột phải, xe bay qua ngọn cây. Tắt đèn → bảng và tiêu đề hiện lại. Không có lỗi console.
+
+### 23/11/2026 — Game 2: bảng đồ trang trí kiểu mới (khung xanh · nền be · chùm quả đỏ) ✅
+**Yêu cầu**: tiêu đề bảng nằm trong khung màu xanh, phần chứa đồ bên dưới màu be, trang trí chùm đỏ phía trên bảng. Duyệt: chùm quả mọng đỏ + lá ô-rô.
+**Đã làm** (`js/art.js` sticker mới `st-holly-bunch`, `js/game2.js`, `css/game2.css`):
+- Dải tiêu đề **xanh lá** bo góc trên, chữ "Đồ trang trí" viết tay màu vàng.
+- Phần chứa đồ **màu be** (kem giấy như thẻ game ở trang chính), cả bảng viền trắng kiểu sticker. Tên món chữ nâu đậm; rê chuột thì món đồ nổi lên trên nền vàng nhạt.
+- **Chùm 6 quả mọng đỏ + 4 lá ô-rô** gắn giữa đỉnh bảng, đè lên mép khung xanh.
+- Cỡ món đồ tính theo **chiều cao thật của cột phải** (CSS container query `cqh`) để tiêu đề + 4 hàng + nút luôn vừa khít. Trước đó ở laptop thấp 1366×657 bảng tràn đè lên nút.
+
+**Đã kiểm tra** (Edge headless, đo bằng code: đáy bảng < đỉnh nút < đáy cột): 1920×1080, 1600×900, 1280×720, 1366×657 và màn dọc 800×1000 đều vừa; chùm quả không chạm bộ đếm quà; không có lỗi console.
 
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
 2. Nối Google Sheet cho phần "Đoán xem bé bốc gì?" (README mục 7), bấm "Kiểm tra kết nối", lấy 1–2 điện thoại quét thử; xong vào Cài đặt → "Xoá phiếu đoán bé bốc gì".
 3. Thử trên máy chiếu/TV thật: bấm `F` toàn màn hình, kiểm tra màu, cỡ chữ và âm lượng.
 4. Chạy thử xong → Cài đặt → Làm lại từ đầu (xoá thẻ ước mơ, cây thông, bốc thăm, phiếu đoán bé bốc gì).
+

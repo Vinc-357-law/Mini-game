@@ -626,6 +626,14 @@ function stickerSVG(kind) {
       <circle cx="60" cy="68" r="8" fill="#d6423a" stroke="#7a1f1a" stroke-width="3"/>
       <circle cx="52" cy="50" r="3" fill="#fff" opacity=".7"/>`);
   }
+  if (kind === 'holly-bunch') {
+    // Chùm quả mọng đỏ + 4 lá ô-rô xoè 2 bên — gắn trên đỉnh bảng đồ trang trí (Game 2)
+    const berry = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#d6423a" stroke="#7a1f1a" stroke-width="3"/>
+      <circle cx="${x - r * 0.35}" cy="${y - r * 0.38}" r="${(r * 0.28).toFixed(1)}" fill="#fff" opacity=".65"/>`;
+    return svg('0 0 240 130', '100%', '100%', `
+      ${holly(118, 62, 192, 1.1)}${holly(118, 66, 152, 1.0)}${holly(122, 62, -12, 1.1)}${holly(122, 66, 28, 1.0)}
+      ${berry(100, 70, 11)}${berry(140, 72, 11)}${berry(108, 50, 13)}${berry(132, 50, 13)}${berry(120, 68, 14)}${berry(120, 90, 11)}`);
+  }
   if (kind === 'star') {
     return svg('0 0 100 100', '100%', '100%', `<path d="${starPath(50, 54, 44, 20)}" fill="#ffd25e" stroke="${O}" stroke-width="4.5" stroke-linejoin="round"/>
       <path d="M38 38 L44 50" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".75"/>`);
