@@ -242,6 +242,11 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 
 **Đã kiểm tra**: Edge headless ở 1600×900, chụp và phóng to vùng con mèo: đủ hai tai, mũ đội đúng trên đầu, chân tì lên cành, đuôi thả sau cành.
 
+### 23/11/2026 — Bỏ dòng phím tắt ở trang chính ✅
+- Xoá mẩu giấy "Space bắt đầu · Esc về trang chính · F toàn màn hình · M nhạc" dưới 3 thẻ game (`index.html`) cùng CSS của nó (`.kbd-hint`, `.home kbd` trong `css/home.css`).
+- Các phím tắt vẫn hoạt động như cũ; README mục 3 vẫn có bảng phím tắt.
+- Đã kiểm tra (Edge headless 1600×900): nội dung trang chính tự căn lại giữa màn hình, không vỡ bố cục.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
 2. Nối Google Sheet cho phần "Đoán xem bé bốc gì?" (README mục 7), bấm "Kiểm tra kết nối", lấy 1–2 điện thoại quét thử; xong vào Cài đặt → "Xoá phiếu đoán bé bốc gì".
