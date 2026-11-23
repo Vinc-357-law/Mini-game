@@ -1,7 +1,9 @@
 // Game 2 — Cùng trang trí cây thông
 import * as store from './storage.js';
 import { sfx } from './audio.js';
-import { treeSVG, ornamentSVG, giftSVG, ORNAMENTS } from './art.js';
+import { treeSVG, ornamentSVG, giftSVG, ORNAMENTS, cardArt } from './art.js';
+
+const PARTY_DATE = '20.12.2026';   // dòng chữ trên dải băng xe tuần lộc kéo khi thắp đèn
 import { $, $$, el, esc, toast } from './ui.js';
 
 let root, treeBox, ornLayer, pile;
@@ -26,6 +28,16 @@ export function init(section) {
           </div>
         </div>
         <div class="g2-counter"><b class="got">0</b> / <span class="total">0</span> bạn nhỏ đã nhận quà</div>
+      </div>
+
+      <!-- Thắp đèn: ông già Noel đi xe tuần lộc bay ngang, kéo dải băng ghi ngày tiệc (chạy bằng CSS khi .g2.lit) -->
+      <div class="g2-sky" aria-hidden="true">
+        <div class="g2-sleigh">
+          <div class="g2-sleigh-bob">
+            <div class="g2-sleigh-art">${cardArt('deco-sleigh')}</div>
+            <div class="g2-banner"><span>${PARTY_DATE}</span></div>
+          </div>
+        </div>
       </div>
 
       <div class="g2-stage">

@@ -256,6 +256,16 @@ Concept: **ấm cúng – vui – không ồn ào**. Tông đỏ – xanh lá Gi
 
 **Đã kiểm tra** (Edge headless): 1600×900 và 1024×768, trạng thái chưa thắp → thắp → tắt lại đều đúng; chữ không đè lên ngôi sao trên ngọn cây; không có lỗi console.
 
+### 23/11/2026 — Game 2: thắp đèn thì ông già Noel bay ngang kéo dòng "20.12.2026" ✅
+**Yêu cầu**: khi thắp đèn có ông già Noel đi xe tuần lộc chạy ngang qua, kèm dòng chữ 20.12.2026. Duyệt: ghi ngày cố định trong code, bay lặp lại.
+**Đã làm** (`js/game2.js`, `css/game2.css`):
+- Dùng lại hình xe tuần lộc ở trang chính (`deco-sleigh`). Đuôi xe buộc dây kéo một **dải băng màu kem viền đỏ, đuôi xẻ chữ V**, ghi **20.12.2026** bằng chữ viết tay, băng phấp phới nhẹ.
+- Thắp đèn: sau 1,6 giây xe bay từ phải sang trái (khoảng 9 giây, vòng cung nhẹ), ngang nửa trên cây thông, dưới lời chúc. Sau đó cứ 25 giây bay lại. Tắt đèn là dừng và ẩn ngay.
+- Máy bật "giảm chuyển động": xe và băng đứng yên ở khoảng trống bên trái.
+- Ngày nằm ở hằng số `PARTY_DATE` đầu file `js/game2.js`, muốn đổi thì sửa ở đó rồi chạy `node tools/build.mjs`.
+
+**Đã kiểm tra** (Edge headless 1600×900): chụp nhiều thời điểm sau khi thắp đèn, xe vào từ mép phải, băng chữ đi theo sau, đi qua cây rồi ra mép trái; tắt đèn thì xe biến mất, tiêu đề hiện lại; không có lỗi console.
+
 ## Việc cần làm trước ngày tiệc (người dùng)
 1. Nhấp đúp `index.html` (luôn dùng cùng một trình duyệt), nhập dữ liệu thật trong Cài đặt (tên bé, danh sách các bé kèm trai/gái, khách, giải thưởng) → Xuất file sao lưu.
 2. Nối Google Sheet cho phần "Đoán xem bé bốc gì?" (README mục 7), bấm "Kiểm tra kết nối", lấy 1–2 điện thoại quét thử; xong vào Cài đặt → "Xoá phiếu đoán bé bốc gì".

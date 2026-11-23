@@ -2869,7 +2869,9 @@ __m['game2'] = (() => {
 // Game 2 — Cùng trang trí cây thông
 const store = __m['storage'];
 const { sfx } = __m['audio'];
-const { treeSVG, ornamentSVG, giftSVG, ORNAMENTS } = __m['art'];
+const { treeSVG, ornamentSVG, giftSVG, ORNAMENTS, cardArt } = __m['art'];
+
+const PARTY_DATE = '20.12.2026';   // dòng chữ trên dải băng xe tuần lộc kéo khi thắp đèn
 const { $, $$, el, esc, toast } = __m['ui'];
 
 let root, treeBox, ornLayer, pile;
@@ -2894,6 +2896,16 @@ function init(section) {
           </div>
         </div>
         <div class="g2-counter"><b class="got">0</b> / <span class="total">0</span> bạn nhỏ đã nhận quà</div>
+      </div>
+
+      <!-- Thắp đèn: ông già Noel đi xe tuần lộc bay ngang, kéo dải băng ghi ngày tiệc (chạy bằng CSS khi .g2.lit) -->
+      <div class="g2-sky" aria-hidden="true">
+        <div class="g2-sleigh">
+          <div class="g2-sleigh-bob">
+            <div class="g2-sleigh-art">${cardArt('deco-sleigh')}</div>
+            <div class="g2-banner"><span>${PARTY_DATE}</span></div>
+          </div>
+        </div>
       </div>
 
       <div class="g2-stage">
